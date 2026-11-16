@@ -337,9 +337,29 @@ render();
 // Supabase browser configuration. Publishable keys are intended for client use; RLS is the security boundary.
 const SUPABASE_URL = 'https://aryfwwluqtcebuswtkfv.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DJjm-kh6cIhnv6UQLpDzrA_KpXvwldf';
+const SUPABASE_REDIRECT_URLS = Array.from(new Set([
+  location.origin + location.pathname,
+  location.origin + location.pathname.replace(/\/?$/, '/'),
+  'https://nawapondec.github.io/Trip',
+  'https://nawapondec.github.io/Trip/',
+  'https://nawapondec.github.io/Trip/index.html',
+  'http://localhost:3000',
+  'http://localhost:8000',
+  'http://localhost'
+]));
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'tripplanner_auth_v1',
+    storage: window.localStorage,
+    flowType: 'pkce'
+  }
 });
+// Required for GitHub Pages / static hosting: the exact redirect URLs should be added in Supabase Auth > Settings > URL Configuration.
+console.info('Supabase redirect candidates:', SUPABASE_REDIRECT_URLS);
+
 let cloudUser=null, activeTripId=null, activeRole=null, cloudChannel=null, saveTimer=null,
     accessTimer=null, applyingRemote=false, lastCloudUpdated=null, tripRows=[], accessCheckBusy=false;
 const gateMsg=(m,kind)=>{const e=document.getElementById('authMsg');e.textContent=m;e.className=kind||'muted';};
@@ -412,18 +432,86 @@ async function cancelInvite(iid){const {error}=await sb.from('trip_invitations')
 $('deleteTrip').onclick=async()=>{if(!confirm('ยืนยันลบทริปนี้ถาวร? ข้อมูลและสมาชิกของทริปจะถูกลบทั้งหมด'))return;const id=activeTripId;const {error}=await sb.from('trips').delete().eq('id',id);if(error){memberMsg('ลบทริปไม่สำเร็จ: '+error.message,'error');return;}$('memberDialog').hidden=true;await handleLostAccess(id);};
 $('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
 $('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
+async function ensureSessionRecovery(){
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error) {
+      console.warn('getSession error:', error.message);
+    }
+    if (session && session.user) {
+      cloudUser = session.user;
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn('Session recovery failed:', err);
+    return false;
+  }
+}
 async function loginUser(){
   const email=$('authEmail').value.trim().toLowerCase();
   const password=$('authPassword').value;
   if(!email||!email.includes('@')){gateMsg('กรุณากรอกอีเมลให้ถูกต้อง','error');return;}
   if(!password){gateMsg('กรอกรหัสผ่านก่อนเข้าสู่ระบบ','error');return;}
   gateMsg('กำลังเข้าสู่ระบบ…');
-  const {data,error}=await sb.auth.signInWithPassword({email,password});
-  if(error){gateMsg('เข้าสู่ระบบไม่สำเร็จ: '+error.message,'error');return;}
-  cloudUser=data.user;
-  await startWorkspace();
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      gateMsg('เข้าสู่ระบบไม่สำเร็จ: '+error.message,'error');
+      return;
+    }
+    cloudUser = data.user;
+    if (data.session) {
+      try { localStorage.setItem('tripplanner_last_login', String(Date.now())); } catch (e) {}
+    }
+    await startWorkspace();
+  } catch (err) {
+    console.error('loginUser error', err);
+    gateMsg('เข้าสู่ระบบพัง: '+(err && err.message ? err.message : 'ตรวจสอบคอนโซล'),'error');
+  }
 }
-(async()=>{const {data:{session}}=await sb.auth.getSession();if(session){cloudUser=session.user;await startWorkspace();}else{clearTripSession();setAppReady(false);}sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){cloudUser=null;tripRows=[];clearTripSession();setAppReady(false);$('authStep1').hidden=false;$('authEmail').value='';$('authPassword').value='';} });})();
+(async()=>{
+  try {
+    const ok = await ensureSessionRecovery();
+    if (ok) {
+      await startWorkspace();
+    } else {
+      clearTripSession();
+      setAppReady(false);
+    }
+  } catch (err) {
+    console.warn('Auth bootstrap warning:', err);
+    clearTripSession();
+    setAppReady(false);
+  }
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    console.info('Auth event:', event, session ? 'session-present' : 'no-session');
+    if (event === 'SIGNED_IN' && session && session.user) {
+      cloudUser = session.user;
+      await startWorkspace();
+      return;
+    }
+    if (event === 'SIGNED_OUT') {
+      cloudUser = null;
+      tripRows = [];
+      clearTripSession();
+      setAppReady(false);
+      $('authStep1').hidden = false;
+      $('authEmail').value = '';
+      $('authPassword').value = '';
+      gateMsg('ออกจากระบบแล้ว');
+      return;
+    }
+    if (event === 'TOKEN_REFRESHED' && session && session.user) {
+      cloudUser = session.user;
+      return;
+    }
+    if (event === 'USER_UPDATED' && session && session.user) {
+      cloudUser = session.user;
+    }
+  });
+})();
 </script>
 </body>
 </html>
