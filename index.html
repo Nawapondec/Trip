@@ -3,11 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Trip</title>
+<title>วางแผนเที่ยว</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;700&family=Sarabun:wght@400;600&display=swap">
 <style>
-:root{--bg:#eef3f4;--surface:#fff;--ink:#14272e;--muted:#5d727a;--line:#cddadd;--accent:#0e7c86;--accent-ink:#fff;--travel:#e8a33d;--bad:#b3261e;--tint:#e1eef0;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+:root{--bg:#eef3f4;--surface:#fff;--ink:#14272e;--muted:#5d727a;--line:#cddadd;--accent:#0e7c86;--accent-ink:#fff;--travel:#e8a33d;--bad:#b3261e;--tint:#e1eef0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b20;--surface:#17272e;--ink:#e6f0f2;--muted:#93a9b0;--line:#2b414a;--accent:#4cc3cd;--accent-ink:#06262a;--travel:#f0b657;--bad:#ff8f86;--tint:#1d333b;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0f1b20;--surface:#17272e;--ink:#e6f0f2;--muted:#93a9b0;--line:#2b414a;--accent:#4cc3cd;--accent-ink:#06262a;--travel:#f0b657;--bad:#ff8f86;--tint:#1d333b;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -74,15 +73,71 @@ a{color:var(--accent)}
 .ord .on{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ord .on small{color:var(--muted)}
 .ord button{min-height:40px;min-width:44px;padding:0}.grip{cursor:grab;color:var(--muted);font-size:1.1rem}
 @media (max-width:520px){.item{grid-template-columns:54px 1fr}.travel{margin-left:66px}}
+#cloudGate{max-width:880px;margin:28px auto;padding:20px 16px;color:var(--ink)}
+#cloudGate .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+#cloudGate .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+#cloudGate .muted{color:var(--muted);font-size:.9rem}
+#cloudGate .error{color:var(--bad)}
+#cloudGate .ok{color:var(--ok)}
+#cloudGate input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:42px}
+body.cloud-ready .wrap{display:block}body.cloud-ready #cloudGate{display:none}
+.admin-btn{position:fixed;top:14px;right:14px;z-index:1500;border:1px solid var(--line);background:rgba(255,255,255,.78);backdrop-filter:blur(8px);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:.8rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.admin-btn:hover{filter:brightness(1.02)}
+.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:2000;padding:20px}
+.admin-modal[hidden]{display:none}
+.admin-modal-box{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.2)}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.admin-header h3{margin:0;font-size:1.1rem}
+.admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.admin-modal input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:42px;margin-top:4px}
+.admin-modal label{display:block;font-size:.85rem;color:var(--muted);margin-top:10px}
+#adminMsg{margin-top:10px;font-size:.85rem}
 </style>
 </head>
 <body>
+<button id="adminBtn" type="button" class="admin-btn" aria-label="Admin login">Admin</button>
+<div id="adminModal" class="admin-modal" hidden>
+  <div class="admin-modal-box">
+    <div class="admin-header">
+      <h3>Admin Login</h3>
+      <button id="adminClose" type="button">×</button>
+    </div>
+    <label for="adminEmail">อีเมล</label>
+    <input id="adminEmail" type="email" placeholder="admin@example.com">
+    <div class="admin-actions">
+      <button id="adminLogin" type="button" class="primary">เข้าสู่ระบบด้วย OTP</button>
+      <button id="adminCancel" type="button">ยกเลิก</button>
+    </div>
+    <p id="adminMsg" class="muted" aria-live="polite"></p>
+  </div>
+</div>
+
+<style>#cloudGate .members{padding-left:20px}#cloudGate .members li{padding:4px 0}#cloudGate .error{color:var(--bad)}#cloudGate .ok{color:var(--ok)}</style>
+<section id="cloudGate">
+ <div class="panel">
+  <h1 style="font-family:Prompt,sans-serif;margin:0 0 8px">Trip Planner · Shared Workspace</h1>
+  <p class="muted">เข้าสู่ระบบด้วยอีเมล เพื่อดูและแก้ไขทริปที่เจ้าของทริปเชิญคุณเท่านั้น ผู้ที่มีเพียงลิงก์เว็บไซต์จะไม่สามารถเข้าถึงข้อมูลทริปได้</p>
+  <div id="authStep1">
+   <label for="authEmail">อีเมล</label><input id="authEmail" type="email" autocomplete="email" placeholder="name@example.com">
+   <div class="row"><button class="primary" id="sendOtp">ส่งรหัสยืนยันทางอีเมล</button></div>
+  </div>
+  <div id="authStep2" hidden>
+   <label for="authCode">รหัส OTP ที่ได้รับทางอีเมล</label><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="รหัสยืนยัน">
+   <div class="row"><button class="primary" id="verifyOtp">ยืนยันและเข้าสู่ระบบ</button><button id="resendOtp">ส่งรหัสอีกครั้ง</button></div>
+  </div>
+  <p id="authMsg" class="muted" aria-live="polite"></p>
+ </div>
+</section>
+
 <div class="wrap">
 <header>
   <h1>วางแผนเที่ยว</h1>
   <div style="flex:2 1 220px"><label for="tname">ชื่อทริป</label><input type="text" id="tname"></div>
   <div style="flex:1 1 150px"><label for="tdate">วันเริ่มเดินทาง</label><input type="date" id="tdate"></div>
 <div class='row' style='flex:1 1 100%;margin:0;align-items:center'><button id='theme'>โหมดสี</button><button id='exp'>ส่งออก Excel</button><button id='imp'>นำเข้า Excel</button><input type='file' id='file' accept='.xlsx,.xls' hidden><span id='saved' style='color:var(--muted);font-size:.85rem'></span><span id='fmsg' style='color:var(--muted);font-size:.85rem'></span></div>
+  <div class='row' id='cloudTools' style='flex:1 1 100%;margin:0;align-items:center;border-top:1px solid var(--line);padding-top:10px'>
+   <label for='tripPicker' style='margin:0'>ทริปที่เข้าถึงได้</label><select id='tripPicker' style='width:auto;min-width:180px;max-width:100%'></select><button id='newTrip' type='button'>+ สร้างทริป</button><button id='manageTrip' type='button'>สมาชิก / คำเชิญ</button><button id='logout' type='button'>ออกจากระบบ</button><span id='syncState' style='color:var(--muted);font-size:.85rem'></span>
+  </div>
 </header>
 
 <div class="tabs" id="tabs" role="tablist"></div>
@@ -100,9 +155,7 @@ a{color:var(--accent)}
 
 <div class="panel" id="ordPanel" hidden></div>
 
-<div class="panel">
-  <ol class="tl" id="tl"></ol>
-</div>
+<div class="panel"><ol class="tl" id="tl"></ol></div>
 
 <div class="panel" id="mapPanel"><h2>แผนที่ของวันนี้</h2><div id="mapBody"></div></div>
 
@@ -123,6 +176,17 @@ a{color:var(--accent)}
   <textarea id="out" readonly aria-label="สรุปแผน"></textarea>
   <div class="row"><button id="copy">คัดลอก</button><span id="msg" style="align-self:center;color:var(--muted)"></span></div>
 </div>
+</div>
+
+<div id="memberDialog" hidden style="position:fixed;inset:0;background:#0008;z-index:9999;padding:16px;overflow:auto">
+ <div style="max-width:560px;margin:6vh auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0;font:700 1.1rem Prompt">สมาชิกและคำเชิญ</h2><button id="closeMembers">ปิด</button></div>
+  <p id="memberRole" style="color:var(--muted);font-size:.9rem"></p>
+  <div id="inviteBox"><label for="inviteEmail">เชิญสมาชิกด้วยอีเมล</label><input id="inviteEmail" type="email" placeholder="member@example.com"><div class="row"><button class="primary" id="sendInvite">เพิ่มคำเชิญ</button></div><p class="muted">ผู้ได้รับเชิญต้องเข้าสู่ระบบด้วยอีเมลเดียวกันบนเว็บไซต์นี้ จึงจะเห็นทริปได้ ระบบนี้บันทึกคำเชิญในฐานข้อมูล แต่ไม่ได้ส่งอีเมลเชิญแยกต่างหาก</p></div>
+  <h3 style="font-size:1rem">สมาชิกปัจจุบัน</h3><ul class="members" id="memberList"></ul>
+  <h3 style="font-size:1rem">คำเชิญที่รอตอบรับ</h3><ul class="members" id="inviteList"></ul><p id="memberMsg" class="muted"></p>
+  <div class="row" id="deleteTripBox"><button class="danger" id="deleteTrip">ลบทริปนี้</button></div>
+ </div>
 </div>
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'></script>
@@ -152,7 +216,7 @@ function calc(day){
   });
   return {rows:res,end:cur,tTravel:tTravel,tStay:tStay,tWait:tWait,start:toMin(day.start)||0};
 }
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function esc(s){return String(s).replace(/[&<>\"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function render(){
   $("tname").value=S.name;$("tdate").value=S.date;
   var tabs=$("tabs");tabs.innerHTML="";
@@ -176,11 +240,11 @@ function render(){
     if(it.travel>0){var tv=document.createElement("li");tv.className="travel";tv.textContent="เดินทาง "+dur(it.travel);tl.appendChild(tv);}
     hintLi(day,i,tl);if(r.wait>0){var w=document.createElement("li");w.className="travel";w.textContent="รอ "+dur(r.wait);tl.appendChild(w);}
     var li=document.createElement("li");li.className="item";
-    li.innerHTML='<div class="time">'+a.t+'<small>ถึง</small></div><div class="card"><h3>'+esc(it.name)+'</h3>'+
-      '<p>อยู่ '+dur(it.stay)+' · ออก '+en.t+(en.next?" (+"+en.next+")":"")+'</p>'+(it.note?'<p>'+esc(it.note)+'</p>':"")+
+    li.innerHTML='<div class="time">'+a.t+'<small>ถึง</small></div><div class="card"><h3>'+esc(it.name)+'</h3>'+ 
+      '<p>อยู่ '+dur(it.stay)+' · ออก '+en.t+(en.next?" (+"+en.next+")":"")+'</p>'+(it.note?'<p>'+esc(it.note)+'</p>':"")+ 
       (r.warn?'<div class="warn">'+r.warn+'</div>':"")+'<div class="acts"></div></div>';
     var acts=li.querySelector(".acts");var cd=li.querySelector('.card');var h3=cd.querySelector('h3'),cc=colorOf(i),chp=document.createElement('span');chp.className='chip';chp.style.background=cc[0];chp.style.color=cc[1];chp.textContent=i+1;h3.insertBefore(chp,h3.firstChild);if(it.st)cd.className+=' st-'+it.st;var sb=document.createElement('div');sb.className='stbar';[['go','กำลังเดินทาง'],['done','เสร็จสิ้น'],['skip','ข้าม']].forEach(function(x){var b=document.createElement('button');b.className='b-'+x[0];b.textContent=x[1];b.setAttribute('aria-pressed',it.st===x[0]);b.onclick=function(){it.st=it.st===x[0]?'':x[0];save();render();};sb.appendChild(b);});acts.parentNode.insertBefore(sb,acts);if(okc(it)){var mp=document.createElement('p');var ma=document.createElement('a');ma.href='https://www.google.com/maps/search/?api=1&query='+it.lat+','+it.lng;ma.target='_blank';ma.rel='noopener';ma.textContent='เปิดใน Google Maps';mp.appendChild(document.createTextNode('พิกัด '+it.lat+', '+it.lng+' · '));mp.appendChild(ma);acts.parentNode.insertBefore(mp,sb);}
-    [["↑",function(){mv(i,-1);}],["↓",function(){mv(i,1);}],["แก้ไข",function(){startEdit(i);}],["ลบ",function(){day.items.splice(i,1);cancelEdit();save();render();},"danger"]].forEach(function(x){
+    [["↑",function(){mv(i,-1);}], ["↓",function(){mv(i,1);}], ["แก้ไข",function(){startEdit(i);}], ["ลบ",function(){day.items.splice(i,1);cancelEdit();save();render();},"danger"]].forEach(function(x){
       var b=document.createElement("button");b.textContent=x[0];if(x[2])b.className=x[2];b.onclick=x[1];if(x[0]==="↑")b.setAttribute("aria-label","เลื่อนขึ้น");if(x[0]==="↓")b.setAttribute("aria-label","เลื่อนลง");acts.appendChild(b);});
     tl.appendChild(li);
   });
@@ -254,7 +318,22 @@ function hintLi(day,i,tl){var it=day.items[i],pv=day.items[i-1];if(!pv||!okc(it)
 function stc(day){var o={done:0,go:0,skip:0,todo:0,tDone:0,tSkip:0,tLeft:0};day.items.forEach(function(it){var k=it.st||'todo';o[k]++;if(k==='done')o.tDone+=it.stay;else if(k==='skip')o.tSkip+=it.stay;else o.tLeft+=it.stay;});return o;}
 function renderChk(day,c){var el=$('chk'),o=stc(day),n=day.items.length,act=n-o.skip,pct=act?Math.round(o.done/act*100):0,v='';if(n){if(!o.todo&&!o.go)v=o.skip?('ทำตามแผน '+o.done+' จาก '+n+' รายการ ข้ามไป '+o.skip+' รายการ (ตัดเวลาในสถานที่ '+dur(o.tSkip)+')'):'ครบทุกรายการตามแผน';else v='ทำแล้ว '+o.done+' จาก '+act+' รายการที่ต้องไป ('+pct+'%) · เวลาในสถานที่ที่เหลือตามแผน '+dur(o.tLeft);var nx=-1;day.items.forEach(function(it,i){if(nx<0&&(!it.st||it.st==='go'))nx=i;});if(nx>=0)v+='<br>ถัดไป: '+esc(day.items[nx].name)+' (ถึง '+fmt(c.rows[nx].arrive).t+' ตามแผน)';}
 el.innerHTML='<h2>เช็กลิสต์และสรุปตามแผน</h2>'+(n?`<div class='bar' role='progressbar' aria-valuenow='${pct}' aria-valuemin='0' aria-valuemax='100'><i style='width:${pct}%'></i></div><p style='margin:8px 0 4px'>เสร็จสิ้น ${o.done} · กำลังเดินทาง ${o.go} · ข้าม ${o.skip} · ยังไม่ทำ ${o.todo}</p><p style='margin:0;color:var(--muted)'>${v}</p>`:`<div class='empty'>เพิ่มรายการแล้วกดสถานะในแต่ละการ์ด</div>`);
-if(S.days.length>1){var ul=document.createElement('ul');ul.className='legs';S.days.forEach(function(d,i){var q=stc(d),a=d.items.length-q.skip,li=document.createElement('li');li.textContent='วันที่ '+(i+1)+': เสร็จ '+q.done+'/'+a+(q.skip?' · ข้าม '+q.skip:'')+(q.go?' · กำลังเดินทาง '+q.go:'');if(i===S.cur)li.style.fontWeight='700';ul.appendChild(li);});el.appendChild(ul);}}
+if(S.days.length>1){
+  var ul=document.createElement('ul');
+  ul.className='legs';
+  S.days.forEach(function(d,i){
+    var q=stc(d),a=d.items.length-q.skip,li=document.createElement('li');
+    li.textContent='วันที่ '+(i+1)+': เสร็จ '+q.done+'/'+a+(q.skip?' · ข้าม '+q.skip:'')+(q.go?' · กำลังเดินทาง '+q.go:'');
+    if(i===S.cur)li.style.fontWeight='700';
+    ul.appendChild(li);
+  });
+  el.appendChild(ul);
+  var p=document.createElement('p');
+  p.style.cssText='margin:8px 0 0;color:var(--muted);font-size:.85rem';
+  p.textContent='เวลาเดินทางผูกกับรายการปลายทาง หลังย้ายลำดับควรดูค่าแนะนำในไทม์ไลน์และกด ใช้ค่านี้';
+  el.appendChild(p);
+}
+} // <-- This closes the renderChk function properly
 function renderMapOld(day){var box=$('mapBody'),pts=[];day.items.forEach(function(it,i){if(okc(it))pts.push({it:it,i:i});});var miss=day.items.length-pts.length;if(!pts.length){box.innerHTML=`<div class='empty'>ยังไม่มีพิกัด ใส่ lat/long ในฟอร์มเพิ่มหรือแก้ไขรายการ เพื่อวาดแผนผังและคำนวณระยะทาง</div>`;return;}
 var W=640,H=380,P=52,mid=pts.reduce(function(s,p){return s+p.it.lat;},0)/pts.length,cs=Math.cos(mid*Math.PI/180);var xs=pts.map(function(p){return p.it.lng*cs;}),ys=pts.map(function(p){return -p.it.lat;});var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys),dx=x1-x0,dy=y1-y0;var sc=Math.min(dx>1e-9?(W-2*P)/dx:1e9,dy>1e-9?(H-2*P)/dy:1e9);if(sc>1e8)sc=1;var ox=(W-dx*sc)/2-x0*sc,oy=(H-dy*sc)/2-y0*sc;var X=function(k){return xs[k]*sc+ox;},Y=function(k){return ys[k]*sc+oy;};
 var line=pts.map(function(p,k){return X(k).toFixed(1)+','+Y(k).toFixed(1);}).join(' ');var s=`<svg class='mapbox' viewBox='0 0 ${W} ${H}' role='img' aria-label='แผนผังเส้นทางของวันนี้'>`;if(pts.length>1)s+=`<polyline points='${line}' style='fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:7 5'/>`;
@@ -263,34 +342,84 @@ var tk=0,tmn=0,ls='';pts.forEach(function(p,k){if(!k)return;var a=pts[k-1],g=leg
 var dir='https://www.google.com/maps/dir/'+pts.map(function(p){return p.it.lat+','+p.it.lng;}).join('/');
 box.innerHTML=s+(pts.length>1?`<p style='margin:10px 0 0'>รวมระยะประมาณ <b>${tk.toFixed(1)} กม.</b> · เวลาเดินทางที่แนะนำรวม <b>${dur(tmn)}</b> (${MODES[S.mode||'car'].n})</p><ul class='legs'>${ls}</ul>`:'')+`<div class='row'><a href='${dir}' target='_blank' rel='noopener'>เปิดเส้นทางใน Google Maps</a>`+(pts.length>1?`<button id='applyAll'>ใช้เวลาแนะนำกับทุกช่วง</button>`:'')+`</div><p style='color:var(--muted);font-size:.85rem'>แผนผังวาดจากพิกัดโดยไม่มีภาพแผนที่ ระยะและเวลาประเมินจากระยะเส้นตรง × ตัวคูณถนน ไม่รวมจราจร ไม่ใช่เส้นทางจริง`+(miss?` · มี ${miss} รายการที่ยังไม่มีพิกัด จึงไม่แสดงในแผนผัง`:'')+`</p>`;
 var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t.dataset.arm='1';t.textContent='กดอีกครั้งเพื่อยืนยัน (แทนที่เวลาเดินทางเดิม)';setTimeout(function(){delete t.dataset.arm;t.textContent='ใช้เวลาแนะนำกับทุกช่วง';},3500);return;}var n=0;for(var k=1;k<day.items.length;k++){var a=day.items[k-1],b=day.items[k];if(okc(a)&&okc(b)){b.travel=leg(a,b).min;n++;}}save();render();note(n?'ปรับเวลาเดินทาง '+n+' ช่วงแล้ว':'ไม่มีช่วงที่มีพิกัดครบทั้งสองจุดติดกัน');};}
-$('gmode').onchange=function(){S.mode=this.value;save();render();};
-$('ilat').addEventListener('input',function(){var p=this.value.split(',');if(p.length===2&&p[0].trim()&&p[1].trim()&&!isNaN(Number(p[0]))&&!isNaN(Number(p[1]))){this.value=p[0].trim();$('ilng').value=p[1].trim();}});
-$('sug').onclick=function(){var la=pcoord($('ilat').value,90),lo=pcoord($('ilng').value,180),m=$('sugmsg'),items=S.days[S.cur].items,pv=edit>=0?items[edit-1]:items[items.length-1];if(la===null||lo===null){m.textContent='ใส่ lat และ long ของรายการนี้ก่อน';return;}if(!pv||!okc(pv)){m.textContent='รายการก่อนหน้ายังไม่มีพิกัด';return;}var g=leg(pv,{lat:la,lng:lo});$('th').value=String(Math.floor(g.min/60)).padStart(2,'0');$('tm').value=String(g.min%60).padStart(2,'0');m.textContent='ระยะ ~'+g.km.toFixed(1)+' กม. ใส่เวลา '+dur(g.min)+' แล้ว';};
-var MZ=0,PAL=[['#0072B2','#fff'],['#D55E00','#fff'],['#009E73','#fff'],['#CC79A7','#111'],['#E69F00','#111'],['#7B3FA0','#fff'],['#56B4E9','#111'],['#A0522D','#fff'],['#6C8E23','#fff'],['#C2185B','#fff']],ATTR={carto:'© OpenStreetMap, © CARTO',osm:'© OpenStreetMap contributors',esri:'Tiles © Esri'},SI={done:'✓',go:'→',skip:'✕'};
-function colorOf(i){return PAL[i%PAL.length];}
-function chipH(i){var c=colorOf(i);return `<span class='chip' style='background:${c[0]};color:${c[1]}'>${i+1}</span>`;}
-function tileUrl(z,x,y){var t=S.tiles||'carto';if(t==='osm')return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;if(t==='esri')return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`;return `https://${'abcd'[(x+y)%4]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;}
-function wpx(lat,lng,z){var n=Math.pow(2,z)*256,r=lat*Math.PI/180;return {x:(lng+180)/360*n,y:(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n};}
-function moveTo(from,to){var a=S.days[S.cur].items;if(isNaN(from)||to<0||to>=a.length||from===to)return;var t=a.splice(from,1)[0];a.splice(to,0,t);cancelEdit();save();render();}
-function renderOrd(day,c){var el=$('ordPanel');el.hidden=day.items.length<2;if(el.hidden)return;el.innerHTML='<h2>ลำดับรายการ (กดลูกศรหรือลากเพื่อย้าย)</h2>';var ul=document.createElement('ul');ul.className='ord';day.items.forEach(function(it,i){var li=document.createElement('li');li.draggable=true;li.innerHTML=`<span class='grip' aria-hidden='true'>⠿</span>${chipH(i)}<span class='on'>${esc(it.name)} <small>${fmt(c.rows[i].arrive).t}</small></span>`;[['▲',-1,'เลื่อนขึ้น'],['▼',1,'เลื่อนลง']].forEach(function(x){var b=document.createElement('button');b.textContent=x[0];b.setAttribute('aria-label',x[2]+' '+it.name);b.disabled=(i+x[1]<0||i+x[1]>=day.items.length);b.onclick=function(){moveTo(i,i+x[1]);};li.appendChild(b);});li.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';});li.addEventListener('dragover',function(e){e.preventDefault();li.classList.add('over');});li.addEventListener('dragleave',function(){li.classList.remove('over');});li.addEventListener('drop',function(e){e.preventDefault();moveTo(parseInt(e.dataTransfer.getData('text/plain'),10),i);});ul.appendChild(li);});el.appendChild(ul);var p=document.createElement('p');p.style.cssText='margin:8px 0 0;color:var(--muted);font-size:.85rem';p.textContent='เวลาเดินทางผูกกับรายการปลายทาง หลังย้ายลำดับควรดูค่าแนะนำในไทม์ไลน์และกด ใช้ค่านี้';el.appendChild(p);}
-function renderMap(day){var box=$('mapBody'),pts=[];day.items.forEach(function(it,i){if(okc(it))pts.push({it:it,i:i});});var miss=day.items.length-pts.length;if(!pts.length){box.innerHTML=`<div class='empty'>ยังไม่มีพิกัด ใส่ lat/long ในฟอร์มเพิ่มหรือแก้ไขรายการ เพื่อวาดแผนที่และคำนวณระยะทาง</div>`;return;}
-var W=640,H=420,P=56,lats=pts.map(function(p){return p.it.lat;}),lngs=pts.map(function(p){return p.it.lng;}),la0=Math.min.apply(null,lats),la1=Math.max.apply(null,lats),lo0=Math.min.apply(null,lngs),lo1=Math.max.apply(null,lngs),zf=1;for(var z=17;z>=1;z--){var wa=wpx(la1,lo0,z),wb=wpx(la0,lo1,z);if(wb.x-wa.x<=W-2*P&&wb.y-wa.y<=H-2*P){zf=z;break;}}zf=Math.min(zf,15);var Z=Math.max(1,Math.min(18,zf+MZ)),cw=wpx((la0+la1)/2,(lo0+lo1)/2,Z),left=cw.x-W/2,top=cw.y-H/2,nT=Math.pow(2,Z);
-var s=`<svg class='mapbox' viewBox='0 0 ${W} ${H}' role='img' aria-label='แผนที่ของวันนี้'><rect width='${W}' height='${H}' style='fill:#e9eef0'/>`;for(var ty=Math.floor(top/256);ty<=Math.floor((top+H)/256);ty++)for(var tx=Math.floor(left/256);tx<=Math.floor((left+W)/256);tx++){if(ty<0||ty>=nT)continue;var wx=((tx%nT)+nT)%nT;s+=`<image class='tile' href='${tileUrl(Z,wx,ty)}' x='${(tx*256-left).toFixed(1)}' y='${(ty*256-top).toFixed(1)}' width='256' height='256'/>`;}
-var D=pts.map(function(p){var w=wpx(p.it.lat,p.it.lng,Z);return {tx:w.x-left,ty:w.y-top,x:w.x-left,y:w.y-top};});for(var rep=0;rep<80;rep++){for(var a=0;a<D.length;a++)for(var b=a+1;b<D.length;b++){var dx=D[b].x-D[a].x,dy=D[b].y-D[a].y,d=Math.sqrt(dx*dx+dy*dy),mn=36;if(d<mn){if(d<0.01){dx=Math.cos(a+b+1);dy=Math.sin(a+b+1);d=1;}var pu=(mn-d)/2+0.1;D[a].x-=dx/d*pu;D[a].y-=dy/d*pu;D[b].x+=dx/d*pu;D[b].y+=dy/d*pu;}}}
-var line=D.map(function(q){return q.tx.toFixed(1)+','+q.ty.toFixed(1);}).join(' ');if(D.length>1)s+=`<polyline points='${line}' style='fill:none;stroke:#fff;stroke-width:7;stroke-linejoin:round'/><polyline points='${line}' style='fill:none;stroke:#1d3557;stroke-width:3;stroke-dasharray:8 5;stroke-linejoin:round'/>`;
-D.forEach(function(q){if(Math.abs(q.x-q.tx)+Math.abs(q.y-q.ty)>4)s+=`<line x1='${q.tx.toFixed(1)}' y1='${q.ty.toFixed(1)}' x2='${q.x.toFixed(1)}' y2='${q.y.toFixed(1)}' style='stroke:#1d3557;stroke-width:2'/><circle cx='${q.tx.toFixed(1)}' cy='${q.ty.toFixed(1)}' r='4' style='fill:#1d3557;stroke:#fff;stroke-width:1.5'/>`;});
-pts.forEach(function(p,k){var q=D[k],c=colorOf(p.i),st=p.it.st||'';s+=`<circle cx='${q.x.toFixed(1)}' cy='${q.y.toFixed(1)}' r='15' style='fill:${c[0]};stroke:#fff;stroke-width:3'/><text x='${q.x.toFixed(1)}' y='${(q.y+5).toFixed(1)}' text-anchor='middle' style='font:700 14px Prompt,sans-serif;fill:${c[1]}'>${p.i+1}</text>`;if(st)s+=`<circle cx='${(q.x+12).toFixed(1)}' cy='${(q.y-12).toFixed(1)}' r='8' style='fill:${st==='done'?'#1f8a4c':st==='go'?'#b8750f':'#6b7b82'};stroke:#fff;stroke-width:2'/><text x='${(q.x+12).toFixed(1)}' y='${(q.y-8).toFixed(1)}' text-anchor='middle' style='font:700 10px sans-serif;fill:#fff'>${SI[st]}</text>`;});
-s+=`<text x='${W-6}' y='${H-6}' text-anchor='end' style='font:11px Sarabun,sans-serif;fill:#222;paint-order:stroke;stroke:#fff;stroke-width:3px'>${ATTR[S.tiles||'carto']}</text></svg>`;
-var tk=0,tmn=0,ls='';pts.forEach(function(p,k){if(!k)return;var a=pts[k-1],g=leg(a.it,p.it),adj=p.i-a.i===1;tk+=g.km;tmn+=g.min;ls+=`<li>${chipH(a.i)}→ ${chipH(p.i)}${esc(a.it.name)} → ${esc(p.it.name)}<br>ระยะประมาณ ${g.km.toFixed(1)} กม. · แนะนำ ~${dur(g.min)}`+(adj?` · ตามแผน ${dur(p.it.travel)}`+(p.it.travel<g.min?` <span class='warn'>(น้อยกว่าที่แนะนำ)</span>`:''):'')+`</li>`;});
-var dir='https://www.google.com/maps/dir/'+pts.map(function(p){return p.it.lat+','+p.it.lng;}).join('/');
-var lg=pts.map(function(p){return `<span class='lg'>${chipH(p.i)}${esc(p.it.name)}${p.it.st?' '+SI[p.it.st]:''}</span>`;}).join('');
-box.innerHTML=`<div class='row' style='margin:0 0 8px;align-items:center'><button id='mzin'>＋ ซูมเข้า</button><button id='mzout'>− ซูมออก</button><button id='mzfit'>พอดีทุกจุด</button><select id='tsrc' style='width:auto' aria-label='แหล่งแผนที่พื้นหลัง'><option value='carto'>CARTO</option><option value='osm'>OpenStreetMap</option><option value='esri'>Esri</option></select></div><div id='tilemsg' class='warn'></div>`+s+`<div class='legend'>${lg}</div>`+(pts.length>1?`<p style='margin:10px 0 0'>รวมระยะประมาณ <b>${tk.toFixed(1)} กม.</b> · เวลาเดินทางที่แนะนำรวม <b>${dur(tmn)}</b> (${MODES[S.mode||'car'].n})</p><ul class='legs'>${ls}</ul>`:'')+`<div class='row'><a href='${dir}' target='_blank' rel='noopener'>เปิดเส้นทางใน Google Maps</a>`+(pts.length>1?`<button id='applyAll'>ใช้เวลาแนะนำกับทุกช่วง</button>`:'')+`</div><p style='color:var(--muted);font-size:.85rem'>หมุดเลขที่ซ้อนกันถูกแยกออกและใช้เส้นโยงไปที่จุดจริง แต่ละรายการมีสีของตัวเอง วงกลมเล็กแสดงสถานะ (✓ เสร็จ → กำลังเดินทาง ✕ ข้าม) · ระยะและเวลาประเมินจากเส้นตรง × ตัวคูณถนน ไม่รวมจราจร`+(miss?` · มี ${miss} รายการที่ยังไม่มีพิกัด`:'')+`</p>`;
-$('tsrc').value=S.tiles||'carto';$('tsrc').onchange=function(){S.tiles=this.value;save();renderMap(S.days[S.cur]);};$('mzin').onclick=function(){MZ=Math.min(MZ+1,6);renderMap(S.days[S.cur]);};$('mzout').onclick=function(){MZ=Math.max(MZ-1,-6);renderMap(S.days[S.cur]);};$('mzfit').onclick=function(){MZ=0;renderMap(S.days[S.cur]);};
-box.querySelectorAll('image.tile').forEach(function(im){im.addEventListener('error',function(){var m=$('tilemsg');if(m)m.textContent='โหลดภาพแผนที่พื้นหลังไม่ได้ (ถูกบล็อกในมุมมองนี้ หรือไม่มีอินเทอร์เน็ต) ลองเปลี่ยนแหล่งแผนที่ หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์';});});
-var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t.dataset.arm='1';t.textContent='กดอีกครั้งเพื่อยืนยัน (แทนที่เวลาเดินทางเดิม)';setTimeout(function(){delete t.dataset.arm;t.textContent='ใช้เวลาแนะนำกับทุกช่วง';},3500);return;}var n=0;for(var k=1;k<day.items.length;k++){var a=day.items[k-1],b=day.items[k];if(okc(a)&&okc(b)){b.travel=leg(a,b).min;n++;}}save();render();note(n?'ปรับเวลาเดินทาง '+n+' ช่วงแล้ว':'ไม่มีช่วงที่มีพิกัดครบทั้งสองจุดติดกัน');};}
 if(!S.mode)S.mode='caree';
 applyTheme();
 render();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://aryfwwluqtcebuswtkfv.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DJjm-kh6cIhnv6UQLpDzrA_KpXvwldf';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'tripplanner_auth_v1',
+    flowType: 'pkce'
+  }
+});
+window.sb = sb;
+let cloudUser=null, activeTripId=null, activeRole=null, cloudChannel=null, saveTimer=null, applyingRemote=false, lastCloudUpdated=null, tripRows=[];
+const gateMsg=(m,kind)=>{const e=document.getElementById('authMsg');if(!e)return; e.textContent=m; e.className=kind||'muted';};
+const syncMsg=(m)=>{const e=document.getElementById('syncState');if(e)e.textContent=m;};
+const memberMsg=(m,kind)=>{const e=document.getElementById('memberMsg');if(!e)return; e.textContent=m; e.className=kind||'muted';};
+function setAppReady(on){document.body.classList.toggle('cloud-ready',!!on);}
+async function sendOtp(){const email=document.getElementById('authEmail').value.trim().toLowerCase(); if(!email||!email.includes('@')){ gateMsg('กรุณากรอกอีเมลให้ถูกต้อง','error'); return; } gateMsg('กำลังส่งรหัสยืนยัน…'); const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}}); if(error){gateMsg('ส่งรหัสไม่สำเร็จ: '+error.message,'error'); return;} document.getElementById('authStep1').hidden=true; document.getElementById('authStep2').hidden=false; gateMsg('ส่งรหัสแล้ว กรุณาตรวจสอบอีเมล รวมถึงโฟลเดอร์ Spam');}
+async function verifyOtp(){const email=document.getElementById('authEmail').value.trim().toLowerCase(); const token=document.getElementById('authCode').value.trim(); if(!token){gateMsg('กรอกรหัส OTP ก่อน','error'); return;} gateMsg('กำลังตรวจสอบ…'); const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'}); if(error){gateMsg('ยืนยันไม่สำเร็จ: '+error.message,'error'); return;} cloudUser=data.user; await startWorkspace(); }
+$('#sendOtp').onclick=sendOtp; $('#resendOtp').onclick=sendOtp; $('#verifyOtp').onclick=verifyOtp;
+async function startWorkspace(){if(!cloudUser)return; gateMsg(''); setAppReady(true); const {data:claimed,error:claimErr}=await sb.rpc('claim_trip_invitations'); if(claimErr) console.warn('Invitation claim:',claimErr.message); await refreshTrips(); }
+window.startWorkspace = startWorkspace;
+async function refreshTrips(selectId){ const {data,error}=await sb.from('trips').select('id,name,owner_id,updated_at').order('updated_at',{ascending:false}); if(error){ syncMsg('โหลดทริปไม่สำเร็จ'); alert('อ่านรายการทริปไม่สำเร็จ: '+error.message+'\nโปรดตรวจสอบว่าได้รัน supabase_setup.sql แล้ว'); return; } tripRows=data||[]; const picker=$('tripPicker'); if(!picker){return;} picker.innerHTML=''; tripRows.forEach(t=>{ const o=document.createElement('option'); o.value=t.id; o.textContent=t.name + (t.owner_id===cloudUser.id ? ' · เจ้าของ' : ' · สมาชิก'); picker.appendChild(o); }); if(!tripRows.length){ activeTripId=null; activeRole=null; syncMsg('ยังไม่มีทริปที่ได้รับสิทธิ์'); $('newTrip').focus(); return; } const chosen = selectId && tripRows.some(t=>t.id===selectId) ? selectId : (activeTripId && tripRows.some(t=>t.id===activeTripId) ? activeTripId : tripRows[0].id); picker.value=chosen; await loadTrip(chosen); }
+async function loadTrip(id){ if(!id) return; const {data,error}=await sb.from('trips').select('id,owner_id,name,trip_data,updated_at').eq('id',id).single(); if(error){ syncMsg('เปิดทริปไม่สำเร็จ'); alert(error.message); return; } activeTripId=data.id; activeRole=data.owner_id===cloudUser.id?'owner':'editor'; lastCloudUpdated=data.updated_at; if(data.trip_data && data.trip_data.days && data.trip_data.days.length){ S = JSON.parse(JSON.stringify(data.trip_data)); S.cur = Math.min(S.cur || 0, S.days.length - 1); } else { S = JSON.parse(JSON.stringify({name:data.name||'ทริปของฉัน',date:new Date().toISOString().slice(0,10),cur:0,mode:'caree',days:[{start:'08:00',items:[]}]})); } S.name = data.name || S.name || 'ทริปของฉัน'; localStorage.setItem(KEY, JSON.stringify(S)); cancelEdit(); render(); syncMsg('ซิงก์แล้ว · '+(activeRole === 'owner' ? 'เจ้าของ' : 'สมาชิกแก้ไขได้')); subscribeTrip(id); }
+async function createTrip(){ const hasLocal = S && Array.isArray(S.days) && S.days.length; const nm = prompt('ตั้งชื่อทริปใหม่', hasLocal ? (S.name || 'ทริปเดิม') : 'ทริปของฉัน'); if(nm===null) return; const fresh = hasLocal ? JSON.parse(JSON.stringify(S)) : {name:nm.trim()||'ทริปของฉัน',date:new Date().toISOString().slice(0,10),cur:0,mode:'caree',days:[{start:'08:00',items:[]}]} ; fresh.name = nm.trim() || fresh.name || 'ทริปของฉัน'; const {data,error}=await sb.from('trips').insert({owner_id:cloudUser.id,name:fresh.name,trip_data:fresh}).select('id').single(); if(error){alert('สร้างทริปไม่สำเร็จ: '+error.message); return;} S=fresh; await refreshTrips(data.id); }
+function subscribeTrip(id){ if(cloudChannel){ sb.removeChannel(cloudChannel); cloudChannel=null; } cloudChannel = sb.channel('trip-'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'trips',filter:'id=eq.'+id},payload=>{ const row=payload.new; if(!row||row.updated_at===lastCloudUpdated) return; if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } applyingRemote=true; S = JSON.parse(JSON.stringify(row.trip_data || S)); S.name = row.name || S.name; lastCloudUpdated = row.updated_at; localStorage.setItem(KEY, JSON.stringify(S)); cancelEdit(); render(); applyingRemote=false; syncMsg('รับข้อมูลล่าสุดจากสมาชิกแล้ว'); }).subscribe(); }
+async function cloudSaveNow(){ if(!cloudUser || !activeTripId || applyingRemote) return; const snap = JSON.parse(JSON.stringify(S)); const expected = lastCloudUpdated; const {data,error} = await sb.from('trips').update({name:snap.name || 'ทริปของฉัน', trip_data:snap}).eq('id',activeTripId).eq('updated_at',expected).select('updated_at').maybeSingle(); if(error || !data){ syncMsg('พบการแก้ไขพร้อมกัน กำลังโหลดข้อมูลล่าสุด…'); const {data:latest,error:readErr}=await sb.from('trips').select('trip_data,name,updated_at').eq('id',activeTripId).single(); if(!readErr && latest){ applyingRemote=true; S = JSON.parse(JSON.stringify(latest.trip_data || S)); S.name = latest.name || S.name; lastCloudUpdated = latest.updated_at; localStorage.setItem(KEY, JSON.stringify(S)); cancelEdit(); render(); applyingRemote=false; syncMsg('โหลดข้อมูลล่าสุดแล้ว กรุณาตรวจสอบการแก้ไขอีกครั้ง'); } else { syncMsg('ซิงก์ไม่สำเร็จ · '+(error?error.message:readErr.message)); } return; } lastCloudUpdated=data.updated_at; syncMsg('ซิงก์แล้ว · '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})); }
+save=function(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} const el=$('saved'); if(el) el.textContent='บันทึกในเครื่องแล้ว'; if(!cloudUser || !activeTripId || applyingRemote) return; syncMsg('กำลังซิงก์…'); if(saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(cloudSaveNow, 550); };
+$('#tripPicker').onchange=e=>loadTrip(e.target.value); $('#newTrip').onclick=createTrip; $('#logout').onclick=async()=>{ if(saveTimer){ clearTimeout(saveTimer); await cloudSaveNow(); } await sb.auth.signOut(); cloudUser=null; activeTripId=null; if(cloudChannel){ sb.removeChannel(cloudChannel); cloudChannel=null; } setAppReady(false); document.getElementById('authStep1').hidden=false; document.getElementById('authStep2').hidden=true; gateMsg('ออกจากระบบแล้ว'); };
+$('#manageTrip').onclick=showMembers; $('#closeMembers').onclick=()=>$('#memberDialog').hidden=true; $('#memberDialog').addEventListener('click',e=>{ if(e.target===$('#memberDialog')) $('#memberDialog').hidden=true; });
+async function showMembers(){ if(!activeTripId) return; $('#memberDialog').hidden=false; $('#inviteBox').hidden = activeRole !== 'owner'; $('#deleteTripBox').hidden = activeRole !== 'owner'; $('#memberRole').textContent = activeRole === 'owner' ? 'คุณเป็นเจ้าของทริป สามารถเชิญ/นำสมาชิกออก และลบทริปได้' : 'คุณเป็นสมาชิกที่ได้รับอนุญาต สามารถแก้ไขข้อมูลทริปได้'; $('#inviteEmail').value=''; memberMsg('กำลังโหลด…'); const {data:members,error}=await sb.from('trip_members').select('user_id,role').eq('trip_id',activeTripId); if(error){ memberMsg(error.message,'error'); return; } const {data:invites,error:ie}=await sb.from('trip_invitations').select('id,email').eq('trip_id',activeTripId); if(ie){ memberMsg(ie.message,'error'); return; } const ul=$('memberList'); ul.innerHTML=''; const all=[{user_id:tripRows.find(t=>t.id===activeTripId)?.owner_id, role:'owner'}, ...(members||[])]; all.forEach(m=>{ const li=document.createElement('li'); li.textContent=(m.user_id===cloudUser.id ? 'คุณ · ' : 'สมาชิก · ') + m.user_id.slice(0,8) + '… (' + m.role + ')'; if(activeRole === 'owner' && m.role !== 'owner'){ const b=document.createElement('button'); b.textContent='นำออก'; b.style.marginLeft='8px'; b.onclick=()=>removeMember(m.user_id); li.appendChild(b); } ul.appendChild(li); }); const il=$('inviteList'); il.innerHTML=''; (invites||[]).forEach(v=>{ const li=document.createElement('li'); li.textContent=v.email; if(activeRole === 'owner'){ const b=document.createElement('button'); b.textContent='ยกเลิก'; b.style.marginLeft='8px'; b.onclick=()=>cancelInvite(v.id); li.appendChild(b); } il.appendChild(li); }); if(!(invites||[]).length) il.textContent='ไม่มีคำเชิญที่รอตอบรับ'; memberMsg(''); }
+$('#sendInvite').onclick=async()=>{ const email=$('#inviteEmail').value.trim().toLowerCase(); if(!email||!email.includes('@')){ memberMsg('กรอกอีเมลให้ถูกต้อง','error'); return; } const {error}=await sb.from('trip_invitations').insert({trip_id:activeTripId,email:email,invited_by:cloudUser.id}); if(error){ memberMsg('เพิ่มคำเชิญไม่สำเร็จ: '+error.message,'error'); return; } memberMsg('เพิ่มคำเชิญแล้ว ผู้รับต้องเข้าสู่ระบบด้วยอีเมลนี้'); $('#inviteEmail').value=''; showMembers(); };
+async function removeMember(uid){ if(!confirm('นำสมาชิกนี้ออกจากทริป?')) return; const {error}=await sb.from('trip_members').delete().eq('trip_id',activeTripId).eq('user_id',uid); if(error) memberMsg(error.message,'error'); else showMembers(); }
+async function cancelInvite(iid){ const {error}=await sb.from('trip_invitations').delete().eq('id',iid); if(error) memberMsg(error.message,'error'); else showMembers(); }
+$('#deleteTrip').onclick=async()=>{ if(!confirm('ยืนยันลบทริปนี้ถาวร? ข้อมูลและสมาชิกของทริปจะถูกลบทั้งหมด')) return; const id=activeTripId; const {error}=await sb.from('trips').delete().eq('id',id); if(error){ memberMsg('ลบทริปไม่สำเร็จ: '+error.message,'error'); return; } $('#memberDialog').hidden=true; activeTripId=null; await refreshTrips(); };
+$('#authEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') sendOtp(); }); $('#authCode').addEventListener('keydown',e=>{ if(e.key==='Enter') verifyOtp(); });
+(async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session){ cloudUser = session.user; setAppReady(true); await startWorkspace(); } else { setAppReady(false); } sb.auth.onAuthStateChange((event,session)=>{ if(event==='SIGNED_OUT'){ cloudUser=null; setAppReady(false); } }); })();
+
+const adminBtn = document.getElementById('adminBtn');
+const adminModal = document.getElementById('adminModal');
+const adminClose = document.getElementById('adminClose');
+const adminCancel = document.getElementById('adminCancel');
+const adminLogin = document.getElementById('adminLogin');
+const adminEmail = document.getElementById('adminEmail');
+const adminMsg = document.getElementById('adminMsg');
+if (adminBtn) {
+  adminBtn.addEventListener('click', function () {
+    adminModal.hidden = false;
+    adminEmail.value = document.getElementById('authEmail').value || '';
+    adminMsg.textContent = '';
+    setTimeout(() => adminEmail.focus(), 50);
+  });
+}
+if (adminClose) adminClose.addEventListener('click', () => adminModal.hidden = true);
+if (adminCancel) adminCancel.addEventListener('click', () => adminModal.hidden = true);
+if (adminLogin) {
+  adminLogin.addEventListener('click', async function () {
+    const email = (adminEmail.value || '').trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      adminMsg.textContent = 'กรุณากรอกอีเมลให้ถูกต้อง';
+      adminMsg.className = 'error';
+      return;
+    }
+    document.getElementById('authEmail').value = email;
+    adminMsg.textContent = 'กำลังส่งรหัส OTP…';
+    adminMsg.className = 'muted';
+    adminModal.hidden = true;
+    await sendOtp();
+  });
+}
+adminModal && adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.hidden = true; });
 </script>
 </body>
 </html>
