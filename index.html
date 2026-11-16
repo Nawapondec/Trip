@@ -321,6 +321,69 @@ var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t
 if(!S.mode)S.mode='caree';
 applyTheme();
 render();
+
+(function(){
+  const adminBtn = document.getElementById('adminBtn');
+  const adminModal = document.getElementById('adminModal');
+  const adminClose = document.getElementById('adminClose');
+  const adminCancel = document.getElementById('adminCancel');
+  const adminLogin = document.getElementById('adminLogin');
+  const adminEmail = document.getElementById('adminEmail');
+  const adminPassword = document.getElementById('adminPassword');
+  const adminMsg = document.getElementById('adminMsg');
+
+  if (!adminBtn || !adminModal) return;
+
+  adminBtn.addEventListener('click', function () {
+    adminModal.hidden = false;
+    adminMsg && (adminMsg.textContent = '');
+    setTimeout(function () {
+      if (adminEmail) adminEmail.focus();
+    }, 50);
+  });
+
+  if (adminClose) {
+    adminClose.addEventListener('click', function () {
+      adminModal.hidden = true;
+      if (adminMsg) adminMsg.textContent = '';
+    });
+  }
+
+  if (adminCancel) {
+    adminCancel.addEventListener('click', function () {
+      adminModal.hidden = true;
+      if (adminMsg) adminMsg.textContent = '';
+    });
+  }
+
+  adminModal.addEventListener('click', function (e) {
+    if (e.target === adminModal) {
+      adminModal.hidden = true;
+      if (adminMsg) adminMsg.textContent = '';
+    }
+  });
+
+  if (adminLogin) {
+    adminLogin.addEventListener('click', function () {
+      if (adminMsg) {
+        adminMsg.textContent = 'Admin login ยังไม่ได้เชื่อม Supabase ในหน้าเวอร์ชันนี้ กรุณาเชื่อมต่อ Supabase ก่อนใช้งาน';
+        adminMsg.className = 'warn';
+      }
+    });
+  }
+
+  if (adminEmail) {
+    adminEmail.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && adminLogin) adminLogin.click();
+    });
+  }
+
+  if (adminPassword) {
+    adminPassword.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && adminLogin) adminLogin.click();
+    });
+  }
+})();
 </script>
 </body>
 </html>
