@@ -14,7 +14,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Sarabun,"Noto Sans Thai",system-ui,sans-serif}
 h1,h2,.num{font-family:Prompt,Sarabun,sans-serif}
-.wrap{display:none;max-width:880px;margin:0 auto;padding:20px 16px 60px}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 60px}
 header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;margin-bottom:18px}
 h1{font-size:1.7rem;margin:0;flex:1 1 100%;font-weight:700}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:2px}
@@ -77,42 +77,12 @@ a{color:var(--accent)}
 </style>
 </head>
 <body>
-
-<style>
-/* Shared trip access panel */
-#cloudGate{max-width:880px;margin:28px auto;padding:20px 16px;color:var(--ink)}
-#cloudGate .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
-#cloudGate .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
-#cloudGate input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:42px}
-#cloudGate button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;min-height:42px;color:var(--ink)}
-#cloudGate button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-#cloudGate .muted{color:var(--muted);font-size:.9rem}#cloudGate .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-#cloudGate .members{padding-left:20px}#cloudGate .members li{padding:4px 0}
-#cloudGate .error{color:var(--bad)}#cloudGate .ok{color:var(--ok)}
-body.cloud-ready .wrap{display:block}body.cloud-ready #cloudGate{display:none}
-</style>
-<section id="cloudGate">
- <div class="panel">
-  <h1 style="font-family:Prompt,sans-serif;margin:0 0 8px">Trip Planner · Shared Workspace</h1>
-  <p class="muted">เข้าสู่ระบบด้วยบัญชีผู้ใช้ที่ admin สร้างไว้ใน Supabase เพื่อเข้าถึงพื้นที่ทริปนี้ ไม่มีระบบลงทะเบียน หรือ OTP ในหน้าเว็บ</p>
-  <div id="authStep1">
-   <label for="authEmail">อีเมลบัญชี admin</label><input id="authEmail" type="email" autocomplete="email" placeholder="admin@example.com">
-   <label for="authPassword" style="margin-top:10px">รหัสผ่าน</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน">
-   <div class="row"><button class="primary" id="loginUser">เข้าสู่ระบบ</button></div>
-  </div>
-  <p id="authMsg" class="muted" aria-live="polite"></p>
- </div>
-</section>
-
 <div class="wrap">
 <header>
   <h1>วางแผนเที่ยว</h1>
   <div style="flex:2 1 220px"><label for="tname">ชื่อทริป</label><input type="text" id="tname"></div>
   <div style="flex:1 1 150px"><label for="tdate">วันเริ่มเดินทาง</label><input type="date" id="tdate"></div>
 <div class='row' style='flex:1 1 100%;margin:0;align-items:center'><button id='theme'>โหมดสี</button><button id='exp'>ส่งออก Excel</button><button id='imp'>นำเข้า Excel</button><input type='file' id='file' accept='.xlsx,.xls' hidden><span id='saved' style='color:var(--muted);font-size:.85rem'></span><span id='fmsg' style='color:var(--muted);font-size:.85rem'></span></div>
-  <div class='row' id='cloudTools' style='flex:1 1 100%;margin:0;align-items:center;border-top:1px solid var(--line);padding-top:10px'>
-   <label for='tripPicker' style='margin:0'>ทริปที่เข้าถึงได้</label><select id='tripPicker' style='width:auto;min-width:180px;max-width:100%'></select><button id='newTrip' type='button'>+ สร้างทริป</button><button id='manageTrip' type='button'>สมาชิก / คำเชิญ</button><button id='logout' type='button'>ออกจากระบบ</button><span id='syncState' style='color:var(--muted);font-size:.85rem'></span>
-  </div>
 </header>
 
 <div class="tabs" id="tabs" role="tablist"></div>
@@ -157,10 +127,12 @@ body.cloud-ready .wrap{display:block}body.cloud-ready #cloudGate{display:none}
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'></script>
 <script>
+var KEY="trip-planner-v1";
 var S={name:"ทริปของฉัน",date:"",cur:0,days:[{start:"08:00",items:[]}]};
 var edit=-1;
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.days&&p.days.length)S=p;}}catch(e){}
 if(!S.date){S.date=new Date().toISOString().slice(0,10);}
-function save(){var el=document.getElementById('saved');if(el)el.textContent='รอซิงก์กับบัญชีของคุณ';}
+function save(){var ok=true;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){ok=false;}var el=document.getElementById('saved');if(el){var n=new Date();el.textContent=ok?'บันทึกอัตโนมัติแล้ว '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'):'เบราว์เซอร์เก็บข้อมูลไม่ได้ ใช้ส่งออก Excel เพื่อเก็บไว้';}}
 function $(id){return document.getElementById(id);}
 function toMin(t){if(!t)return null;var a=t.split(":");return +a[0]*60+ +a[1];}
 function fmt(m){m=Math.round(m);var d=Math.floor(m/1440);m=((m%1440)+1440)%1440;var s=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");return {t:s,next:d};}
@@ -319,199 +291,6 @@ var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t
 if(!S.mode)S.mode='caree';
 applyTheme();
 render();
-</script>
-
-<div id="memberDialog" hidden style="position:fixed;inset:0;background:#0008;z-index:9999;padding:16px;overflow:auto">
- <div style="max-width:560px;margin:6vh auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px">
-  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0;font:700 1.1rem Prompt">สมาชิกและคำเชิญ</h2><button id="closeMembers">ปิด</button></div>
-  <p id="memberRole" style="color:var(--muted);font-size:.9rem"></p>
-  <div id="inviteBox"><label for="inviteEmail">เชิญสมาชิกด้วยอีเมล</label><input id="inviteEmail" type="email" placeholder="member@example.com"><div class="row"><button class="primary" id="sendInvite">เพิ่มคำเชิญ</button></div><p class="muted">ผู้ได้รับเชิญต้องเข้าสู่ระบบด้วยอีเมลเดียวกันบนเว็บไซต์นี้ จึงจะเห็นทริปได้ ระบบนี้บันทึกคำเชิญในฐานข้อมูล แต่ไม่ได้ส่งอีเมลเชิญแยกต่างหาก</p></div>
-  <h3 style="font-size:1rem">สมาชิกปัจจุบัน</h3><ul class="members" id="memberList"></ul>
-  <h3 style="font-size:1rem">คำเชิญที่รอตอบรับ</h3><ul class="members" id="inviteList"></ul><p id="memberMsg" class="muted"></p>
-  <div class="row" id="deleteTripBox"><button class="danger" id="deleteTrip">ลบทริปนี้</button></div>
- </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// Supabase browser configuration. Publishable keys are intended for client use; RLS is the security boundary.
-const SUPABASE_URL = 'https://aryfwwluqtcebuswtkfv.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DJjm-kh6cIhnv6UQLpDzrA_KpXvwldf';
-const SUPABASE_REDIRECT_URLS = Array.from(new Set([
-  location.origin + location.pathname,
-  location.origin + location.pathname.replace(/\/?$/, '/'),
-  'https://nawapondec.github.io/Trip',
-  'https://nawapondec.github.io/Trip/',
-  'https://nawapondec.github.io/Trip/index.html',
-  'http://localhost:3000',
-  'http://localhost:8000',
-  'http://localhost'
-]));
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'tripplanner_auth_v1',
-    storage: window.localStorage,
-    flowType: 'pkce'
-  }
-});
-// Required for GitHub Pages / static hosting: the exact redirect URLs should be added in Supabase Auth > Settings > URL Configuration.
-console.info('Supabase redirect candidates:', SUPABASE_REDIRECT_URLS);
-
-let cloudUser=null, activeTripId=null, activeRole=null, cloudChannel=null, saveTimer=null,
-    accessTimer=null, applyingRemote=false, lastCloudUpdated=null, tripRows=[], accessCheckBusy=false;
-const gateMsg=(m,kind)=>{const e=document.getElementById('authMsg');e.textContent=m;e.className=kind||'muted';};
-const syncMsg=(m)=>{const e=document.getElementById('syncState');if(e)e.textContent=m;};
-const memberMsg=(m,kind)=>{const e=document.getElementById('memberMsg');e.textContent=m;e.className=kind||'muted';};
-function setAppReady(on){document.body.classList.toggle('cloud-ready',!!on);}
-function blankTrip(){return {name:'ทริปของฉัน',date:new Date().toISOString().slice(0,10),cur:0,mode:'caree',days:[{start:'08:00',items:[]}]};}
-function stopTripWatch(){if(cloudChannel){sb.removeChannel(cloudChannel);cloudChannel=null;}if(accessTimer){clearInterval(accessTimer);accessTimer=null;}}
-function clearTripSession(){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}stopTripWatch();activeTripId=null;activeRole=null;lastCloudUpdated=null;S=blankTrip();cancelEdit();render();}
-async function startWorkspace(){if(!cloudUser)return;setAppReady(false);clearTripSession();gateMsg('กำลังตรวจสอบสิทธิ์…');const {error:claimErr}=await sb.rpc('claim_trip_invitations');if(claimErr)console.warn('Invitation claim:',claimErr.message);await refreshTrips();gateMsg('');}
-async function refreshTrips(selectId){
- if(!cloudUser)return;
- const {data,error}=await sb.from('trips').select('id,name,owner_id,updated_at').order('updated_at',{ascending:false});
- if(error){setAppReady(false);syncMsg('โหลดทริปไม่สำเร็จ');gateMsg('ตรวจสอบรายการทริปไม่สำเร็จ: '+error.message,'error');return;}
- tripRows=data||[];const picker=$('tripPicker');picker.innerHTML='';tripRows.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+(t.owner_id===cloudUser.id?' · เจ้าของ':' · สมาชิก');picker.appendChild(o);});
- setAppReady(true);
- if(!tripRows.length){clearTripSession();syncMsg('ยังไม่มีทริปที่ได้รับสิทธิ์ · สร้างทริปใหม่ได้');return;}
- const chosen=selectId&&tripRows.some(t=>t.id===selectId)?selectId:(activeTripId&&tripRows.some(t=>t.id===activeTripId)?activeTripId:tripRows[0].id);picker.value=chosen;await loadTrip(chosen);
-}
-async function loadTrip(id){
- if(!cloudUser||!id)return;
- if(saveTimer){clearTimeout(saveTimer);saveTimer=null;await cloudSaveNow();}
- const {data,error}=await sb.from('trips').select('id,owner_id,name,trip_data,updated_at').eq('id',id).maybeSingle();
- if(error||!data){syncMsg('ไม่มีสิทธิ์เข้าถึงทริปนี้ หรือทริปถูกลบแล้ว');await handleLostAccess(id);return;}
- stopTripWatch();
- activeTripId=data.id;activeRole=data.owner_id===cloudUser.id?'owner':'editor';lastCloudUpdated=data.updated_at;
- if(data.trip_data&&data.trip_data.days&&data.trip_data.days.length){S=JSON.parse(JSON.stringify(data.trip_data));S.cur=Math.min(S.cur||0,S.days.length-1);}else S=blankTrip();
- S.name=data.name||S.name||'ทริปของฉัน';cancelEdit();render();syncMsg('ซิงก์แล้ว · '+(activeRole==='owner'?'เจ้าของ':'สมาชิกแก้ไขได้'));subscribeTrip(id);
-}
-async function createTrip(){const hasLocal=tripRows.length===0&&S&&Array.isArray(S.days)&&S.days.length;const nm=prompt('ตั้งชื่อทริปใหม่',hasLocal?(S.name||'ทริปเดิม'):'ทริปของฉัน');if(nm===null)return;const fresh=hasLocal?JSON.parse(JSON.stringify(S)):blankTrip();fresh.name=nm.trim()||fresh.name||'ทริปของฉัน';const {data,error}=await sb.from('trips').insert({owner_id:cloudUser.id,name:fresh.name,trip_data:fresh}).select('id').single();if(error){alert('สร้างทริปไม่สำเร็จ: '+error.message);return;}S=fresh;await refreshTrips(data.id);}
-async function handleLostAccess(id){
- if(id&&activeTripId&&id!==activeTripId)return;
- clearTripSession();
- if(cloudUser){syncMsg('สิทธิ์เข้าถึงถูกยกเลิกหรือทริปถูกลบแล้ว');await refreshTrips();}
-}
-async function checkActiveAccess(){
- if(accessCheckBusy||!cloudUser||!activeTripId)return;accessCheckBusy=true;const id=activeTripId;
- try{const {data,error}=await sb.from('trips').select('id,owner_id,updated_at').eq('id',id).maybeSingle();if(error||!data){await handleLostAccess(id);return;}if(data.updated_at!==lastCloudUpdated){const {data:latest,error:le}=await sb.from('trips').select('id,owner_id,name,trip_data,updated_at').eq('id',id).maybeSingle();if(le||!latest){await handleLostAccess(id);return;}if(latest.updated_at!==lastCloudUpdated){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}applyingRemote=true;S=JSON.parse(JSON.stringify(latest.trip_data||blankTrip()));S.name=latest.name||S.name;lastCloudUpdated=latest.updated_at;cancelEdit();render();applyingRemote=false;syncMsg('ตรวจพบการเปลี่ยนแปลง · โหลดข้อมูลล่าสุดแล้ว');}}}finally{accessCheckBusy=false;}
-}
-function subscribeTrip(id){
- stopTripWatch();
- cloudChannel=sb.channel('trip-'+id+'-'+cloudUser.id)
- .on('postgres_changes',{event:'UPDATE',schema:'public',table:'trips',filter:'id=eq.'+id},payload=>{const row=payload.new;if(!row||row.updated_at===lastCloudUpdated)return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}applyingRemote=true;S=JSON.parse(JSON.stringify(row.trip_data||blankTrip()));S.name=row.name||S.name;lastCloudUpdated=row.updated_at;cancelEdit();render();applyingRemote=false;syncMsg('รับข้อมูลล่าสุดจากสมาชิกแล้ว');})
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'trips',filter:'id=eq.'+id},()=>handleLostAccess(id))
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'trip_members',filter:'trip_id=eq.'+id},()=>checkActiveAccess())
- .subscribe();
- // Re-check authorization periodically as a fallback if a Realtime DELETE is not delivered.
- accessTimer=setInterval(checkActiveAccess,8000);
-}
-async function cloudSaveNow(){
- if(!cloudUser||!activeTripId||applyingRemote)return;
- const tripId=activeTripId,snap=JSON.parse(JSON.stringify(S)),expected=lastCloudUpdated;
- const {data,error}=await sb.from('trips').update({name:snap.name||'ทริปของฉัน',trip_data:snap}).eq('id',tripId).eq('updated_at',expected).select('updated_at').maybeSingle();
- if(error||!data){const {data:latest,error:readErr}=await sb.from('trips').select('id,trip_data,name,updated_at').eq('id',tripId).maybeSingle();if(readErr||!latest){await handleLostAccess(tripId);return;}syncMsg('พบการแก้ไขพร้อมกัน · โหลดข้อมูลล่าสุดแล้ว');applyingRemote=true;S=JSON.parse(JSON.stringify(latest.trip_data||blankTrip()));S.name=latest.name||S.name;lastCloudUpdated=latest.updated_at;cancelEdit();render();applyingRemote=false;return;}
- lastCloudUpdated=data.updated_at;syncMsg('ซิงก์แล้ว · '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
-}
-// Trip content is never written to localStorage. Each account loads only rows allowed by RLS.
-save=function(){const el=$('saved');if(el)el.textContent='';if(!cloudUser||!activeTripId||applyingRemote)return;syncMsg('กำลังซิงก์…');if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(cloudSaveNow,550);};
-$('tripPicker').onchange=e=>loadTrip(e.target.value);$('newTrip').onclick=createTrip;
-$('logout').onclick=async()=>{if(saveTimer){clearTimeout(saveTimer);await cloudSaveNow();}clearTripSession();cloudUser=null;tripRows=[];setAppReady(false);$('authStep1').hidden=false;$('authEmail').value='';$('authPassword').value='';await sb.auth.signOut();gateMsg('ออกจากระบบแล้ว');};
-$('manageTrip').onclick=showMembers;$('closeMembers').onclick=()=>$('memberDialog').hidden=true;$('memberDialog').addEventListener('click',e=>{if(e.target===$('memberDialog'))$('memberDialog').hidden=true;});
-async function showMembers(){if(!activeTripId)return;$('memberDialog').hidden=false;$('inviteBox').hidden=activeRole!=='owner';$('deleteTripBox').hidden=activeRole!=='owner';$('memberRole').textContent=activeRole==='owner'?'คุณเป็นเจ้าของทริป สามารถเชิญ/นำสมาชิกออก และลบทริปได้':'คุณเป็นสมาชิกที่ได้รับอนุญาต สามารถแก้ไขข้อมูลทริปได้';$('inviteEmail').value='';memberMsg('กำลังโหลด…');
- const {data:members,error}=await sb.from('trip_members').select('user_id,role').eq('trip_id',activeTripId);if(error){memberMsg(error.message,'error');return;}
- const {data:invites,error:ie}=await sb.from('trip_invitations').select('id,email').eq('trip_id',activeTripId);if(ie){memberMsg(ie.message,'error');return;}
- const ul=$('memberList');ul.innerHTML='';const all=[{user_id:tripRows.find(t=>t.id===activeTripId)?.owner_id,role:'owner'},...(members||[])];all.forEach(m=>{const li=document.createElement('li');li.textContent=(m.user_id===cloudUser.id?'คุณ · ':'สมาชิก · ')+m.user_id.slice(0,8)+'… ('+m.role+')';if(activeRole==='owner'&&m.role!=='owner'){const b=document.createElement('button');b.textContent='นำออก';b.style.marginLeft='8px';b.onclick=()=>removeMember(m.user_id);li.appendChild(b);}ul.appendChild(li);});
- const il=$('inviteList');il.innerHTML='';(invites||[]).forEach(v=>{const li=document.createElement('li');li.textContent=v.email;if(activeRole==='owner'){const b=document.createElement('button');b.textContent='ยกเลิก';b.style.marginLeft='8px';b.onclick=()=>cancelInvite(v.id);li.appendChild(b);}il.appendChild(li);});if(!(invites||[]).length)il.textContent='ไม่มีคำเชิญที่รอตอบรับ';memberMsg('');}
-$('sendInvite').onclick=async()=>{const email=$('inviteEmail').value.trim().toLowerCase();if(!email||!email.includes('@')){memberMsg('กรอกอีเมลให้ถูกต้อง','error');return;}const {error}=await sb.from('trip_invitations').insert({trip_id:activeTripId,email:email,invited_by:cloudUser.id});if(error){memberMsg('เพิ่มคำเชิญไม่สำเร็จ: '+error.message,'error');return;}memberMsg('เพิ่มคำเชิญแล้ว ผู้รับต้องเข้าสู่ระบบด้วยอีเมลนี้');$('inviteEmail').value='';showMembers();};
-async function removeMember(uid){if(!confirm('นำสมาชิกนี้ออกจากทริป?'))return;const {error}=await sb.from('trip_members').delete().eq('trip_id',activeTripId).eq('user_id',uid);if(error)memberMsg(error.message,'error');else showMembers();}
-async function cancelInvite(iid){const {error}=await sb.from('trip_invitations').delete().eq('id',iid);if(error)memberMsg(error.message,'error');else showMembers();}
-$('deleteTrip').onclick=async()=>{if(!confirm('ยืนยันลบทริปนี้ถาวร? ข้อมูลและสมาชิกของทริปจะถูกลบทั้งหมด'))return;const id=activeTripId;const {error}=await sb.from('trips').delete().eq('id',id);if(error){memberMsg('ลบทริปไม่สำเร็จ: '+error.message,'error');return;}$('memberDialog').hidden=true;await handleLostAccess(id);};
-$('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
-$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
-async function ensureSessionRecovery(){
-  try {
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (error) {
-      console.warn('getSession error:', error.message);
-    }
-    if (session && session.user) {
-      cloudUser = session.user;
-      return true;
-    }
-    return false;
-  } catch (err) {
-    console.warn('Session recovery failed:', err);
-    return false;
-  }
-}
-async function loginUser(){
-  const email=$('authEmail').value.trim().toLowerCase();
-  const password=$('authPassword').value;
-  if(!email||!email.includes('@')){gateMsg('กรุณากรอกอีเมลให้ถูกต้อง','error');return;}
-  if(!password){gateMsg('กรอกรหัสผ่านก่อนเข้าสู่ระบบ','error');return;}
-  gateMsg('กำลังเข้าสู่ระบบ…');
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      gateMsg('เข้าสู่ระบบไม่สำเร็จ: '+error.message,'error');
-      return;
-    }
-    cloudUser = data.user;
-    if (data.session) {
-      try { localStorage.setItem('tripplanner_last_login', String(Date.now())); } catch (e) {}
-    }
-    await startWorkspace();
-  } catch (err) {
-    console.error('loginUser error', err);
-    gateMsg('เข้าสู่ระบบพัง: '+(err && err.message ? err.message : 'ตรวจสอบคอนโซล'),'error');
-  }
-}
-(async()=>{
-  try {
-    const ok = await ensureSessionRecovery();
-    if (ok) {
-      await startWorkspace();
-    } else {
-      clearTripSession();
-      setAppReady(false);
-    }
-  } catch (err) {
-    console.warn('Auth bootstrap warning:', err);
-    clearTripSession();
-    setAppReady(false);
-  }
-
-  sb.auth.onAuthStateChange(async (event, session) => {
-    console.info('Auth event:', event, session ? 'session-present' : 'no-session');
-    if (event === 'SIGNED_IN' && session && session.user) {
-      cloudUser = session.user;
-      await startWorkspace();
-      return;
-    }
-    if (event === 'SIGNED_OUT') {
-      cloudUser = null;
-      tripRows = [];
-      clearTripSession();
-      setAppReady(false);
-      $('authStep1').hidden = false;
-      $('authEmail').value = '';
-      $('authPassword').value = '';
-      gateMsg('ออกจากระบบแล้ว');
-      return;
-    }
-    if (event === 'TOKEN_REFRESHED' && session && session.user) {
-      cloudUser = session.user;
-      return;
-    }
-    if (event === 'USER_UPDATED' && session && session.user) {
-      cloudUser = session.user;
-    }
-  });
-})();
 </script>
 </body>
 </html>
