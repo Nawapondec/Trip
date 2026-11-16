@@ -14,7 +14,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Sarabun,"Noto Sans Thai",system-ui,sans-serif}
 h1,h2,.num{font-family:Prompt,Sarabun,sans-serif}
-.wrap{display:block;max-width:880px;margin:0 auto;padding:20px 16px 60px}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 60px}
 header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;margin-bottom:18px}
 h1{font-size:1.7rem;margin:0;flex:1 1 100%;font-weight:700}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:2px}
@@ -74,40 +74,16 @@ a{color:var(--accent)}
 .ord .on{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ord .on small{color:var(--muted)}
 .ord button{min-height:40px;min-width:44px;padding:0}.grip{cursor:grab;color:var(--muted);font-size:1.1rem}
 @media (max-width:520px){.item{grid-template-columns:54px 1fr}.travel{margin-left:66px}}
-.admin-btn{position:fixed;top:14px;right:14px;z-index:1500;border:1px solid var(--line);background:rgba(255,255,255,.78);backdrop-filter:blur(8px);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:.8rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.admin-btn[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:2000;padding:20px}
-.admin-modal[hidden]{display:none}
-.admin-modal-box{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.2)}
-.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.admin-header h3{margin:0;font-size:1.1rem}
-.admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.admin-modal input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:42px;margin-top:4px}
-.admin-modal label{display:block;font-size:.85rem;color:var(--muted);margin-top:10px}
-#adminMsg{margin-top:10px;font-size:.85rem}
 </style>
 </head>
 <body>
-
-<button id="adminBtn" type="button" class="admin-btn" aria-label="Admin login">Admin</button>
-
-<div id="adminModal" class="admin-modal" hidden>
-  <div class="admin-modal-box">
-    <div class="admin-header">
-      <h3>Admin Login</h3>
-      <button id="adminClose" type="button">×</button>
-    </div>
-    <label for="adminEmail">อีเมล</label>
-    <input id="adminEmail" type="email" placeholder="admin@example.com">
-    <label for="adminPassword" style="margin-top:8px">รหัสผ่าน</label>
-    <input id="adminPassword" type="password" placeholder="กรอกรหัสผ่าน">
-    <div class="admin-actions">
-      <button id="adminLogin" type="button" class="primary">เข้าสู่ระบบ admin</button>
-      <button id="adminCancel" type="button">ยกเลิก</button>
-    </div>
-    <p id="adminMsg" class="muted" aria-live="polite"></p>
-  </div>
-</div>
+<div class="wrap">
+<header>
+  <h1>วางแผนเที่ยว</h1>
+  <div style="flex:2 1 220px"><label for="tname">ชื่อทริป</label><input type="text" id="tname"></div>
+  <div style="flex:1 1 150px"><label for="tdate">วันเริ่มเดินทาง</label><input type="date" id="tdate"></div>
+<div class='row' style='flex:1 1 100%;margin:0;align-items:center'><button id='theme'>โหมดสี</button><button id='exp'>ส่งออก Excel</button><button id='imp'>นำเข้า Excel</button><input type='file' id='file' accept='.xlsx,.xls' hidden><span id='saved' style='color:var(--muted);font-size:.85rem'></span><span id='fmsg' style='color:var(--muted);font-size:.85rem'></span></div>
+</header>
 
 <div class="tabs" id="tabs" role="tablist"></div>
 
@@ -147,13 +123,16 @@ a{color:var(--accent)}
   <textarea id="out" readonly aria-label="สรุปแผน"></textarea>
   <div class="row"><button id="copy">คัดลอก</button><span id="msg" style="align-self:center;color:var(--muted)"></span></div>
 </div>
+</div>
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'></script>
 <script>
+var KEY="trip-planner-v1";
 var S={name:"ทริปของฉัน",date:"",cur:0,days:[{start:"08:00",items:[]}]};
 var edit=-1;
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.days&&p.days.length)S=p;}}catch(e){}
 if(!S.date){S.date=new Date().toISOString().slice(0,10);}
-function save(){var el=document.getElementById('saved');if(el)el.textContent='รอซิงก์กับบัญชีของคุณ';}
+function save(){var ok=true;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){ok=false;}var el=document.getElementById('saved');if(el){var n=new Date();el.textContent=ok?'บันทึกอัตโนมัติแล้ว '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'):'เบราว์เซอร์เก็บข้อมูลไม่ได้ ใช้ส่งออก Excel เพื่อเก็บไว้';}}
 function $(id){return document.getElementById(id);}
 function toMin(t){if(!t)return null;var a=t.split(":");return +a[0]*60+ +a[1];}
 function fmt(m){m=Math.round(m);var d=Math.floor(m/1440);m=((m%1440)+1440)%1440;var s=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");return {t:s,next:d};}
@@ -307,174 +286,11 @@ var dir='https://www.google.com/maps/dir/'+pts.map(function(p){return p.it.lat+'
 var lg=pts.map(function(p){return `<span class='lg'>${chipH(p.i)}${esc(p.it.name)}${p.it.st?' '+SI[p.it.st]:''}</span>`;}).join('');
 box.innerHTML=`<div class='row' style='margin:0 0 8px;align-items:center'><button id='mzin'>＋ ซูมเข้า</button><button id='mzout'>− ซูมออก</button><button id='mzfit'>พอดีทุกจุด</button><select id='tsrc' style='width:auto' aria-label='แหล่งแผนที่พื้นหลัง'><option value='carto'>CARTO</option><option value='osm'>OpenStreetMap</option><option value='esri'>Esri</option></select></div><div id='tilemsg' class='warn'></div>`+s+`<div class='legend'>${lg}</div>`+(pts.length>1?`<p style='margin:10px 0 0'>รวมระยะประมาณ <b>${tk.toFixed(1)} กม.</b> · เวลาเดินทางที่แนะนำรวม <b>${dur(tmn)}</b> (${MODES[S.mode||'car'].n})</p><ul class='legs'>${ls}</ul>`:'')+`<div class='row'><a href='${dir}' target='_blank' rel='noopener'>เปิดเส้นทางใน Google Maps</a>`+(pts.length>1?`<button id='applyAll'>ใช้เวลาแนะนำกับทุกช่วง</button>`:'')+`</div><p style='color:var(--muted);font-size:.85rem'>หมุดเลขที่ซ้อนกันถูกแยกออกและใช้เส้นโยงไปที่จุดจริง แต่ละรายการมีสีของตัวเอง วงกลมเล็กแสดงสถานะ (✓ เสร็จ → กำลังเดินทาง ✕ ข้าม) · ระยะและเวลาประเมินจากเส้นตรง × ตัวคูณถนน ไม่รวมจราจร`+(miss?` · มี ${miss} รายการที่ยังไม่มีพิกัด`:'')+`</p>`;
 $('tsrc').value=S.tiles||'carto';$('tsrc').onchange=function(){S.tiles=this.value;save();renderMap(S.days[S.cur]);};$('mzin').onclick=function(){MZ=Math.min(MZ+1,6);renderMap(S.days[S.cur]);};$('mzout').onclick=function(){MZ=Math.max(MZ-1,-6);renderMap(S.days[S.cur]);};$('mzfit').onclick=function(){MZ=0;renderMap(S.days[S.cur]);};
-box.querySelectorAll('image.tile').forEach(function(im){im.addEventListener('error',function(){var m=$('tilemsg');if(m)m.textContent='โหลดภาพแผนที่พื้นหลังไม่ได้ (ถูกบล็อกในมุมนี้ หรือไม่มีอินเทอร์เน็ต) ลองเปลี่ยนแหล่งแผนที่ หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์';});});
+box.querySelectorAll('image.tile').forEach(function(im){im.addEventListener('error',function(){var m=$('tilemsg');if(m)m.textContent='โหลดภาพแผนที่พื้นหลังไม่ได้ (ถูกบล็อกในมุมมองนี้ หรือไม่มีอินเทอร์เน็ต) ลองเปลี่ยนแหล่งแผนที่ หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์';});});
 var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t.dataset.arm='1';t.textContent='กดอีกครั้งเพื่อยืนยัน (แทนที่เวลาเดินทางเดิม)';setTimeout(function(){delete t.dataset.arm;t.textContent='ใช้เวลาแนะนำกับทุกช่วง';},3500);return;}var n=0;for(var k=1;k<day.items.length;k++){var a=day.items[k-1],b=day.items[k];if(okc(a)&&okc(b)){b.travel=leg(a,b).min;n++;}}save();render();note(n?'ปรับเวลาเดินทาง '+n+' ช่วงแล้ว':'ไม่มีช่วงที่มีพิกัดครบทั้งสองจุดติดกัน');};}
 if(!S.mode)S.mode='caree';
 applyTheme();
 render();
-document.getElementById('adminBtn').addEventListener('click', function(){
-  const modal = document.getElementById('adminModal');
-  if (modal) modal.hidden = false;
-  const email = document.getElementById('adminEmail');
-  if (email) setTimeout(() => email.focus(), 50);
-});
-document.getElementById('adminClose').addEventListener('click', function(){
-  document.getElementById('adminModal').hidden = true;
-});
-document.getElementById('adminCancel').addEventListener('click', function(){
-  document.getElementById('adminModal').hidden = true;
-});
-document.getElementById('adminModal').addEventListener('click', function(e){
-  if (e.target === this) this.hidden = true;
-});
-document.getElementById('adminLogin').addEventListener('click', async function(){
-  const email = document.getElementById('adminEmail').value.trim().toLowerCase();
-  const password = document.getElementById('adminPassword').value;
-  const msg = document.getElementById('adminMsg');
-  if (!email || !email.includes('@')) {
-    msg.textContent = 'กรุณากรอกอีเมลให้ถูกต้อง';
-    msg.className = 'error';
-    return;
-  }
-  if (!password) {
-    msg.textContent = 'กรอกรหัสผ่านก่อน';
-    msg.className = 'error';
-    return;
-  }
-  msg.textContent = 'กำลังเข้าสู่ระบบ admin…';
-  msg.className = 'muted';
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      msg.textContent = 'เข้าสู่ระบบ admin ไม่สำเร็จ: ' + error.message;
-      msg.className = 'error';
-      return;
-    }
-    cloudUser = data.user;
-    msg.textContent = 'เข้าสู่ระบบ admin แล้ว';
-    msg.className = 'ok';
-    document.getElementById('adminModal').hidden = true;
-    await startWorkspace();
-    document.getElementById('adminBtn').setAttribute('aria-pressed', 'true');
-  } catch (err) {
-    console.error('Admin login failed', err);
-    msg.textContent = 'เข้าสู่ระบบ admin ล้มเหลว: ' + (err && err.message ? err.message : 'ตรวจสอบคอนโซล');
-    msg.className = 'error';
-  }
-});
-document.getElementById('adminEmail').addEventListener('keydown', function(e){ if (e.key === 'Enter') document.getElementById('adminLogin').click(); });
-document.getElementById('adminPassword').addEventListener('keydown', function(e){ if (e.key === 'Enter') document.getElementById('adminLogin').click(); });
-</script>
-
-<div id="memberDialog" hidden style="position:fixed;inset:0;background:#0008;z-index:9999;padding:16px;overflow:auto">
- <div style="max-width:560px;margin:6vh auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px">
-  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0;font:700 1.1rem Prompt">สมาชิกและคำเชิญ</h2><button id="closeMembers">ปิด</button></div>
-  <p id="memberRole" style="color:var(--muted);font-size:.9rem"></p>
-  <div id="inviteBox"><label for="inviteEmail">เชิญสมาชิกด้วยอีเมล</label><input id="inviteEmail" type="email" placeholder="member@example.com"><div class="row"><button class="primary" id="sendInvite">เพิ่มคำเชิญ</button></div><p class="muted">ผู้ได้รับเชิญต้องเข้าสู่ระบบด้วยอีเมลเดียวกันบนเว็บไซต์นี้ จึงจะเห็นทริปได้ ระบบนี้บันทึกคำเชิญในฐานข้อมูล แต่ไม่ได้ส่งอีเมลเชิญแยกต่างหาก</p></div>
-  <h3 style="font-size:1rem">สมาชิกปัจจุบัน</h3><ul class="members" id="memberList"></ul>
-  <h3 style="font-size:1rem">คำเชิญที่รอตอบรับ</h3><ul class="members" id="inviteList"></ul><p id="memberMsg" class="muted"></p>
-  <div class="row" id="deleteTripBox"><button class="danger" id="deleteTrip">ลบทริปนี้</button></div>
- </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// Supabase browser configuration. Publishable keys are intended for client use; RLS is the security boundary.
-const SUPABASE_URL = 'https://aryfwwluqtcebuswtkfv.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DJjm-kh6cIhnv6UQLpDzrA_KpXvwldf';
-const SUPABASE_REDIRECT_URLS = Array.from(new Set([
-  location.origin + location.pathname,
-  location.origin + location.pathname.replace(/\/?$/, '/'),
-  'https://nawapondec.github.io/Trip',
-  'https://nawapondec.github.io/Trip/',
-  'https://nawapondec.github.io/Trip/index.html',
-  'http://localhost:3000',
-  'http://localhost:8000',
-  'http://localhost'
-]));
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'tripplanner_auth_v1',
-    storage: window.localStorage,
-    flowType: 'pkce'
-  }
-});
-// Required for GitHub Pages / static hosting: the exact redirect URLs should be added in Supabase Auth > Settings > URL Configuration.
-console.info('Supabase redirect candidates:', SUPABASE_REDIRECT_URLS);
-
-let cloudUser=null, activeTripId=null, activeRole=null, cloudChannel=null, saveTimer=null,
-    accessTimer=null, applyingRemote=false, lastCloudUpdated=null, tripRows=[], accessCheckBusy=false;
-const gateMsg=(m,kind)=>{const el=document.getElementById('adminMsg')||document.getElementById('authMsg'); if(!el)return; el.textContent=m; el.className=kind||'muted';};
-const syncMsg=(m)=>{const e=document.getElementById('syncState');if(e)e.textContent=m;};
-const memberMsg=(m,kind)=>{const e=document.getElementById('memberMsg');e.textContent=m;e.className=kind||'muted';};
-function setAppReady(on){document.body.classList.toggle('cloud-ready',!!on);}
-function blankTrip(){return {name:'ทริปของฉัน',date:new Date().toISOString().slice(0,10),cur:0,mode:'caree',days:[{start:'08:00',items:[]}]};}
-function stopTripWatch(){if(cloudChannel){sb.removeChannel(cloudChannel);cloudChannel=null;}if(accessTimer){clearInterval(accessTimer);accessTimer=null;}}
-function clearTripSession(){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}stopTripWatch();activeTripId=null;activeRole=null;lastCloudUpdated=null;S=blankTrip();cancelEdit();render();}
-async function startWorkspace(){if(!cloudUser)return;setAppReady(false);clearTripSession();gateMsg('กำลังตรวจสอบสิทธิ์…');const {error:claimErr}=await sb.rpc('claim_trip_invitations');if(claimErr)console.warn('Invitation claim:',claimErr.message);await refreshTrips();gateMsg('');}
-
-async function refreshTrips(selectId){
- if(!cloudUser)return;
- const {data,error}=await sb.from('trips').select('id,name,owner_id,updated_at').order('updated_at',{ascending:false});
- if(error){setAppReady(false);syncMsg('โหลดทริปไม่สำเร็จ');gateMsg('ตรวจสอบรายการทริปไม่สำเร็จ: '+error.message,'error');return;}
- tripRows=data||[];const picker=$('tripPicker');picker.innerHTML='';tripRows.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+(t.owner_id===cloudUser.id?' · เจ้าของ':' · สมาชิก');picker.appendChild(o);});
- setAppReady(true);
- if(!tripRows.length){clearTripSession();syncMsg('ยังไม่มีทริปที่ได้รับสิทธิ์ · สร้างทริปใหม่ได้');return;}
- const chosen=selectId&&tripRows.some(t=>t.id===selectId)?selectId:(activeTripId&&tripRows.some(t=>t.id===activeTripId)?activeTripId:tripRows[0].id);picker.value=chosen;await loadTrip(chosen);
-}
-async function loadTrip(id){
- if(!cloudUser||!id)return;
- if(saveTimer){clearTimeout(saveTimer);saveTimer=null;await cloudSaveNow();}
- const {data,error}=await sb.from('trips').select('id,owner_id,name,trip_data,updated_at').eq('id',id).maybeSingle();
- if(error||!data){syncMsg('ไม่มีสิทธิ์เข้าถึงทริปนี้ หรือทริปถูกลบแล้ว');await handleLostAccess(id);return;}
- stopTripWatch();
- activeTripId=data.id;activeRole=data.owner_id===cloudUser.id?'owner':'editor';lastCloudUpdated=data.updated_at;
- if(data.trip_data&&data.trip_data.days&&data.trip_data.days.length){S=JSON.parse(JSON.stringify(data.trip_data));S.cur=Math.min(S.cur||0,S.days.length-1);}else S=blankTrip();
- S.name=data.name||S.name||'ทริปของฉัน';cancelEdit();render();syncMsg('ซิงก์แล้ว · '+(activeRole==='owner'?'เจ้าของ':'สมาชิกแก้ไขได้'));subscribeTrip(id);
-}
-async function createTrip(){const hasLocal=tripRows.length===0&&S&&Array.isArray(S.days)&&S.days.length;const nm=prompt('ตั้งชื่อทริปใหม่',hasLocal?(S.name||'ทริปเดิม'):'ทริปของฉัน');if(nm===null)return;const fresh=hasLocal?JSON.parse(JSON.stringify(S)):blankTrip();fresh.name=nm.trim()||fresh.name||'ทริปของฉัน';const {data,error}=await sb.from('trips').insert({owner_id:cloudUser.id,name:fresh.name,trip_data:fresh}).select('id').single();if(error){alert('สร้างทริปไม่สำเร็จ: '+error.message);return;}S=fresh;await refreshTrips(data.id);}
-async function handleLostAccess(id){
- if(id&&activeTripId&&id!==activeTripId)return;
- clearTripSession();
- if(cloudUser){syncMsg('สิทธิ์เข้าถึงถูกยกเลิกหรือทริปถูกลบแล้ว');await refreshTrips();}
-}
-async function checkActiveAccess(){
- if(accessCheckBusy||!cloudUser||!activeTripId)return;accessCheckBusy=true;const id=activeTripId;
- try{const {data,error}=await sb.from('trips').select('id,owner_id,updated_at').eq('id',id).maybeSingle();if(error||!data){await handleLostAccess(id);return;}if(data.updated_at!==lastCloudUpdated){const {data:latest,error:le}=await sb.from('trips').select('id,owner_id,name,trip_data,updated_at').eq('id',id).maybeSingle();if(le||!latest){await handleLostAccess(id);return;}if(latest.updated_at!==lastCloudUpdated){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}applyingRemote=true;S=JSON.parse(JSON.stringify(latest.trip_data||blankTrip()));S.name=latest.name||S.name;lastCloudUpdated=latest.updated_at;cancelEdit();render();applyingRemote=false;syncMsg('ตรวจพบการเปลี่ยนแปลง · โหลดข้อมูลล่าสุดแล้ว');}}}finally{accessCheckBusy=false;}
-}
-function subscribeTrip(id){
- stopTripWatch();
- cloudChannel=sb.channel('trip-'+id+'-'+cloudUser.id)
- .on('postgres_changes',{event:'UPDATE',schema:'public',table:'trips',filter:'id=eq.'+id},payload=>{const row=payload.new;if(!row||row.updated_at===lastCloudUpdated)return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}applyingRemote=true;S=JSON.parse(JSON.stringify(row.trip_data||blankTrip()));S.name=row.name||S.name;lastCloudUpdated=row.updated_at;cancelEdit();render();applyingRemote=false;syncMsg('รับข้อมูลล่าสุดจากสมาชิกแล้ว');})
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'trips',filter:'id=eq.'+id},()=>handleLostAccess(id))
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'trip_members',filter:'trip_id=eq.'+id},()=>checkActiveAccess())
- .subscribe();
- // Re-check authorization periodically as a fallback if a Realtime DELETE is not delivered.
- accessTimer=setInterval(checkActiveAccess,8000);
-}
-async function cloudSaveNow(){
- if(!cloudUser||!activeTripId||applyingRemote)return;
- const tripId=activeTripId,snap=JSON.parse(JSON.stringify(S)),expected=lastCloudUpdated;
- const {data,error}=await sb.from('trips').update({name:snap.name||'ทริปของฉัน',trip_data:snap}).eq('id',tripId).eq('updated_at',expected).select('updated_at').maybeSingle();
- if(error||!data){const {data:latest,error:readErr}=await sb.from('trips').select('id,trip_data,name,updated_at').eq('id',tripId).maybeSingle();if(readErr||!latest){await handleLostAccess(tripId);return;}syncMsg('พบการแก้ไขพร้อมกัน · โหลดข้อมูลล่าสุดแล้ว');applyingRemote=true;S=JSON.parse(JSON.stringify(latest.trip_data||blankTrip()));S.name=latest.name||S.name;lastCloudUpdated=latest.updated_at;cancelEdit();render();applyingRemote=false;return;}
- lastCloudUpdated=data.updated_at;syncMsg('ซิงก์แล้ว · '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
-}
-// Trip content is never written to localStorage. Each account loads only rows allowed by RLS.
-save=function(){const el=$('saved');if(el)el.textContent='';if(!cloudUser||!activeTripId||applyingRemote)return;syncMsg('กำลังซิงก์…');if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(cloudSaveNow,550);};
-$('tripPicker').onchange=e=>loadTrip(e.target.value);$('newTrip').onclick=createTrip;
-$('manageTrip').onclick=showMembers;$('closeMembers').onclick=()=>$('memberDialog').hidden=true;$('memberDialog').addEventListener('click',e=>{if(e.target===$('memberDialog'))$('memberDialog').hidden=true;});
-async function showMembers(){if(!activeTripId)return;$('memberDialog').hidden=false;$('inviteBox').hidden=activeRole!=='owner';$('deleteTripBox').hidden=activeRole!=='owner';$('memberRole').textContent=activeRole==='owner'?'คุณเป็นเจ้าของทริป สามารถเชิญ/นำสมาชิกออก และลบทริปได้':'คุณเป็นสมาชิกที่ได้รับอนุญาต สามารถแก้ไขข้อมูลทริปได้';$('inviteEmail').value='';memberMsg('กำลังโหลด…');
- const {data:members,error}=await sb.from('trip_members').select('user_id,role').eq('trip_id',activeTripId);if(error){memberMsg(error.message,'error');return;}
- const {data:invites,error:ie}=await sb.from('trip_invitations').select('id,email').eq('trip_id',activeTripId);if(ie){memberMsg(ie.message,'error');return;}
- const ul=$('memberList');ul.innerHTML='';const all=[{user_id:tripRows.find(t=>t.id===activeTripId)?.owner_id,role:'owner'},...(members||[])];all.forEach(m=>{const li=document.createElement('li');li.textContent=(m.user_id===cloudUser.id?'คุณ · ':'สมาชิก · ')+m.user_id.slice(0,8)+'… ('+m.role+')';if(activeRole==='owner'&&m.role!=='owner'){const b=document.createElement('button');b.textContent='นำออก';b.style.marginLeft='8px';b.onclick=()=>removeMember(m.user_id);li.appendChild(b);}ul.appendChild(li);});
- const il=$('inviteList');il.innerHTML='';(invites||[]).forEach(v=>{const li=document.createElement('li');li.textContent=v.email;if(activeRole==='owner'){const b=document.createElement('button');b.textContent='ยกเลิก';b.style.marginLeft='8px';b.onclick=()=>cancelInvite(v.id);li.appendChild(b);}il.appendChild(li);});if(!(invites||[]).length)il.textContent='ไม่มีคำเชิญที่รอตอบรับ';memberMsg('');}
-$('sendInvite').onclick=async()=>{const email=$('inviteEmail').value.trim().toLowerCase();if(!email||!email.includes('@')){memberMsg('กรอกอีเมลให้ถูกต้อง','error');return;}const {error}=await sb.from('trip_invitations').insert({trip_id:activeTripId,email:email,invited_by:cloudUser.id});if(error){memberMsg('เพิ่มคำเชิญไม่สำเร็จ: '+error.message,'error');return;}memberMsg('เพิ่มคำเชิญแล้ว ผู้รับต้องเข้าสู่ระบบด้วยอีเมลนี้');$('inviteEmail').value='';showMembers();};
-async function removeMember(uid){if(!confirm('นำสมาชิกนี้ออกจากทริป?'))return;const {error}=await sb.from('trip_members').delete().eq('trip_id',activeTripId).eq('user_id',uid);if(error)memberMsg(error.message,'error');else showMembers();}
-async function cancelInvite(iid){const {error}=await sb.from('trip_invitations').delete().eq('id',iid);if(error)memberMsg(error.message,'error');else showMembers();}
-$('deleteTrip').onclick=async()=>{if(!confirm('ยืนยันลบทริปนี้ถาวร? ข้อมูลและสมาชิกของทริปจะถูกลบทั้งหมด'))return;const id=activeTripId;const {error}=await sb.from('trips').delete().eq('id',id);if(error){memberMsg('ลบทริปไม่สำเร็จ: '+error.message,'error');return;}$('memberDialog').hidden=true;await handleLostAccess(id);};
 </script>
 </body>
 </html>
