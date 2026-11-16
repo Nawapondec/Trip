@@ -94,14 +94,11 @@ body.cloud-ready .wrap{display:block}body.cloud-ready #cloudGate{display:none}
 <section id="cloudGate">
  <div class="panel">
   <h1 style="font-family:Prompt,sans-serif;margin:0 0 8px">Trip Planner · Shared Workspace</h1>
-  <p class="muted">เข้าสู่ระบบด้วยอีเมล เพื่อดูและแก้ไขทริปที่เจ้าของทริปเชิญคุณเท่านั้น ผู้ที่มีเพียงลิงก์เว็บไซต์จะไม่สามารถเข้าถึงข้อมูลทริปได้</p>
+  <p class="muted">เข้าสู่ระบบด้วยบัญชีผู้ใช้ที่ admin สร้างไว้ใน Supabase เพื่อเข้าถึงพื้นที่ทริปนี้ ไม่มีระบบลงทะเบียน หรือ OTP ในหน้าเว็บ</p>
   <div id="authStep1">
-   <label for="authEmail">อีเมล</label><input id="authEmail" type="email" autocomplete="email" placeholder="name@example.com">
-   <div class="row"><button class="primary" id="sendOtp">ส่งรหัสยืนยันทางอีเมล</button></div>
-  </div>
-  <div id="authStep2" hidden>
-   <label for="authCode">รหัส OTP ที่ได้รับทางอีเมล</label><input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="รหัสยืนยัน">
-   <div class="row"><button class="primary" id="verifyOtp">ยืนยันและเข้าสู่ระบบ</button><button id="resendOtp">ส่งรหัสอีกครั้ง</button></div>
+   <label for="authEmail">อีเมลบัญชี admin</label><input id="authEmail" type="email" autocomplete="email" placeholder="admin@example.com">
+   <label for="authPassword" style="margin-top:10px">รหัสผ่าน</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน">
+   <div class="row"><button class="primary" id="loginUser">เข้าสู่ระบบ</button></div>
   </div>
   <p id="authMsg" class="muted" aria-live="polite"></p>
  </div>
@@ -352,9 +349,6 @@ function setAppReady(on){document.body.classList.toggle('cloud-ready',!!on);}
 function blankTrip(){return {name:'ทริปของฉัน',date:new Date().toISOString().slice(0,10),cur:0,mode:'caree',days:[{start:'08:00',items:[]}]};}
 function stopTripWatch(){if(cloudChannel){sb.removeChannel(cloudChannel);cloudChannel=null;}if(accessTimer){clearInterval(accessTimer);accessTimer=null;}}
 function clearTripSession(){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}stopTripWatch();activeTripId=null;activeRole=null;lastCloudUpdated=null;S=blankTrip();cancelEdit();render();}
-async function sendOtp(){const email=$('authEmail').value.trim().toLowerCase();if(!email||!email.includes('@')){gateMsg('กรุณากรอกอีเมลให้ถูกต้อง','error');return;}gateMsg('กำลังส่งรหัสยืนยัน…');const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:location.origin+location.pathname}});if(error){gateMsg('ส่งรหัสไม่สำเร็จ: '+error.message,'error');return;}$('authStep1').hidden=true;$('authStep2').hidden=false;gateMsg('ส่งรหัสแล้ว กรุณาตรวจสอบอีเมล รวมถึงโฟลเดอร์ Spam');}
-async function verifyOtp(){const email=$('authEmail').value.trim().toLowerCase(),token=$('authCode').value.trim();if(!token){gateMsg('กรอกรหัส OTP ก่อน','error');return;}gateMsg('กำลังตรวจสอบ…');const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});if(error){gateMsg('ยืนยันไม่สำเร็จ: '+error.message,'error');return;}cloudUser=data.user;await startWorkspace();}
-$('sendOtp').onclick=sendOtp;$('resendOtp').onclick=sendOtp;$('verifyOtp').onclick=verifyOtp;
 async function startWorkspace(){if(!cloudUser)return;setAppReady(false);clearTripSession();gateMsg('กำลังตรวจสอบสิทธิ์…');const {error:claimErr}=await sb.rpc('claim_trip_invitations');if(claimErr)console.warn('Invitation claim:',claimErr.message);await refreshTrips();gateMsg('');}
 async function refreshTrips(selectId){
  if(!cloudUser)return;
@@ -405,7 +399,7 @@ async function cloudSaveNow(){
 // Trip content is never written to localStorage. Each account loads only rows allowed by RLS.
 save=function(){const el=$('saved');if(el)el.textContent='';if(!cloudUser||!activeTripId||applyingRemote)return;syncMsg('กำลังซิงก์…');if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(cloudSaveNow,550);};
 $('tripPicker').onchange=e=>loadTrip(e.target.value);$('newTrip').onclick=createTrip;
-$('logout').onclick=async()=>{if(saveTimer){clearTimeout(saveTimer);await cloudSaveNow();}clearTripSession();cloudUser=null;tripRows=[];setAppReady(false);$('authStep1').hidden=false;$('authStep2').hidden=true;$('authEmail').value='';$('authCode').value='';await sb.auth.signOut();gateMsg('ออกจากระบบแล้ว');};
+$('logout').onclick=async()=>{if(saveTimer){clearTimeout(saveTimer);await cloudSaveNow();}clearTripSession();cloudUser=null;tripRows=[];setAppReady(false);$('authStep1').hidden=false;$('authEmail').value='';$('authPassword').value='';await sb.auth.signOut();gateMsg('ออกจากระบบแล้ว');};
 $('manageTrip').onclick=showMembers;$('closeMembers').onclick=()=>$('memberDialog').hidden=true;$('memberDialog').addEventListener('click',e=>{if(e.target===$('memberDialog'))$('memberDialog').hidden=true;});
 async function showMembers(){if(!activeTripId)return;$('memberDialog').hidden=false;$('inviteBox').hidden=activeRole!=='owner';$('deleteTripBox').hidden=activeRole!=='owner';$('memberRole').textContent=activeRole==='owner'?'คุณเป็นเจ้าของทริป สามารถเชิญ/นำสมาชิกออก และลบทริปได้':'คุณเป็นสมาชิกที่ได้รับอนุญาต สามารถแก้ไขข้อมูลทริปได้';$('inviteEmail').value='';memberMsg('กำลังโหลด…');
  const {data:members,error}=await sb.from('trip_members').select('user_id,role').eq('trip_id',activeTripId);if(error){memberMsg(error.message,'error');return;}
@@ -416,8 +410,20 @@ $('sendInvite').onclick=async()=>{const email=$('inviteEmail').value.trim().toLo
 async function removeMember(uid){if(!confirm('นำสมาชิกนี้ออกจากทริป?'))return;const {error}=await sb.from('trip_members').delete().eq('trip_id',activeTripId).eq('user_id',uid);if(error)memberMsg(error.message,'error');else showMembers();}
 async function cancelInvite(iid){const {error}=await sb.from('trip_invitations').delete().eq('id',iid);if(error)memberMsg(error.message,'error');else showMembers();}
 $('deleteTrip').onclick=async()=>{if(!confirm('ยืนยันลบทริปนี้ถาวร? ข้อมูลและสมาชิกของทริปจะถูกลบทั้งหมด'))return;const id=activeTripId;const {error}=await sb.from('trips').delete().eq('id',id);if(error){memberMsg('ลบทริปไม่สำเร็จ: '+error.message,'error');return;}$('memberDialog').hidden=true;await handleLostAccess(id);};
-$('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp();});$('authCode').addEventListener('keydown',e=>{if(e.key==='Enter')verifyOtp();});
-(async()=>{const {data:{session}}=await sb.auth.getSession();if(session){cloudUser=session.user;await startWorkspace();}else{clearTripSession();setAppReady(false);}sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){cloudUser=null;tripRows=[];clearTripSession();setAppReady(false);$('authStep1').hidden=false;$('authStep2').hidden=true;} });})();
+$('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
+$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginUser();});
+async function loginUser(){
+  const email=$('authEmail').value.trim().toLowerCase();
+  const password=$('authPassword').value;
+  if(!email||!email.includes('@')){gateMsg('กรุณากรอกอีเมลให้ถูกต้อง','error');return;}
+  if(!password){gateMsg('กรอกรหัสผ่านก่อนเข้าสู่ระบบ','error');return;}
+  gateMsg('กำลังเข้าสู่ระบบ…');
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  if(error){gateMsg('เข้าสู่ระบบไม่สำเร็จ: '+error.message,'error');return;}
+  cloudUser=data.user;
+  await startWorkspace();
+}
+(async()=>{const {data:{session}}=await sb.auth.getSession();if(session){cloudUser=session.user;await startWorkspace();}else{clearTripSession();setAppReady(false);}sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){cloudUser=null;tripRows=[];clearTripSession();setAppReady(false);$('authStep1').hidden=false;$('authEmail').value='';$('authPassword').value='';} });})();
 </script>
 </body>
 </html>
