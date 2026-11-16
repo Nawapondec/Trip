@@ -74,12 +74,120 @@ a{color:var(--accent)}
 .ord .on{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ord .on small{color:var(--muted)}
 .ord button{min-height:40px;min-width:44px;padding:0}.grip{cursor:grab;color:var(--muted);font-size:1.1rem}
 @media (max-width:520px){.item{grid-template-columns:54px 1fr}.travel{margin-left:66px}}
+
+/* Expense tracking */
+#budgetPanel{border-top:3px solid #20a477}
+.budget-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.budget-metric{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:12px}
+.budget-metric b{display:block;font:700 1.15rem Prompt,sans-serif;overflow-wrap:anywhere}
+.budget-metric small{color:var(--muted)}
+.budget-progress{height:10px;border-radius:20px;background:var(--tint);overflow:hidden;margin:8px 0 14px}
+.budget-progress i{display:block;height:100%;background:#20a477;width:0}
+.expense-form{display:grid;grid-template-columns:1.2fr 1fr .8fr;gap:9px;align-items:end}
+.expense-list{list-style:none;margin:12px 0 0;padding:0}
+.expense-list li{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.expense-list .expense-main{flex:1;min-width:0}
+.expense-list .expense-main b{display:block;overflow-wrap:anywhere}
+.expense-list small{color:var(--muted)}
+.expense-list .expense-amount{font:700 .98rem Prompt,sans-serif;white-space:nowrap}
+.expense-list button{min-height:32px;padding:2px 9px}
+@media(max-width:680px){.budget-top{grid-template-columns:1fr 1fr}.expense-form{grid-template-columns:1fr 1fr}.expense-form>div:first-child{grid-column:1/-1}}
+/* Premium travel dashboard */
+:root{
+ --bg:#f3f6fb;--surface:#ffffff;--ink:#17243a;--muted:#68778d;--line:#e3e9f2;
+ --accent:#4968d8;--accent-ink:#fff;--travel:#e5a13a;--tint:#edf1ff;
+ --shadow:0 12px 32px rgba(28,45,84,.07);--radius:18px;
+}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]){--bg:#0d1422;--surface:#151f31;--ink:#edf2ff;--muted:#9aa9c0;--line:#29364c;--accent:#91a6ff;--accent-ink:#101a34;--tint:#202c48;--shadow:0 12px 32px rgba(0,0,0,.2)}
+}
+:root[data-theme="dark"]{--bg:#0d1422;--surface:#151f31;--ink:#edf2ff;--muted:#9aa9c0;--line:#29364c;--accent:#91a6ff;--accent-ink:#101a34;--tint:#202c48;--shadow:0 12px 32px rgba(0,0,0,.2)}
+body{background:radial-gradient(ellipse at 10% 0%,rgba(91,124,230,.10),transparent 32%),var(--bg);font-size:15px}
+.wrap{max-width:1440px;padding:28px clamp(16px,3vw,42px) 64px}
+header{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1.2fr) minmax(160px,.75fr);gap:14px 18px;align-items:end;padding:26px 28px;margin-bottom:18px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(120deg,var(--surface),color-mix(in srgb,var(--tint) 60%,var(--surface)));box-shadow:var(--shadow)}
+header .hero-copy{grid-column:1/-1}
+.hero-eyebrow{font:700 .72rem Prompt,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+header h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;letter-spacing:-.03em}
+.hero-subtitle{margin:7px 0 0;color:var(--muted);font-size:.94rem}
+header>div:not(.hero-copy){min-width:0}
+header .row{grid-column:1/-1;gap:9px}
+button{border-radius:11px;transition:transform .16s ease,border-color .16s ease,background .16s ease;box-shadow:0 1px 2px rgba(20,35,65,.03)}
+button:hover{border-color:var(--accent);transform:translateY(-1px)}
+button.primary{box-shadow:0 7px 16px rgba(73,104,216,.2)}
+input[type=text],input[type=number],input[type=date],input[type=time],select{border-radius:11px;background:var(--surface)}
+.tabs{gap:9px;margin:4px 0 16px;padding:4px 2px 10px}
+.tab{border-radius:13px;padding:10px 17px;min-width:112px}
+.tab[aria-selected=true]{box-shadow:0 7px 18px rgba(73,104,216,.18)}
+.panel{border:1px solid var(--line);border-radius:var(--radius);padding:19px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel h2{font-size:1.02rem;letter-spacing:-.01em}
+#dayInfo{padding:17px 19px}
+#dayInfo .grid{grid-template-columns:minmax(150px,.9fr) minmax(190px,1fr) auto}
+#dayInfo .grid>div:last-child{flex-wrap:wrap}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:15px;padding:15px 16px;background:var(--surface);box-shadow:var(--shadow)}
+.stat b{font-size:1.35rem;color:var(--ink)}
+.stat span{font-size:.8rem}
+.workspace{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr);gap:16px;align-items:start}
+.workspace-left,.workspace-right{min-width:0}
+.workspace-right{position:sticky;top:14px}
+.workspace .panel{margin-bottom:16px}
+#timelinePanel{min-height:240px}
+#mapPanel{padding:18px}
+#mapPanel .mapbox{border-radius:13px;overflow:hidden}
+#chk .bar{height:9px;border-radius:20px}
+#ordPanel .ord li{padding:8px 4px}
+.card{border-radius:14px;padding:13px 14px;background:var(--surface);box-shadow:0 3px 12px rgba(20,35,65,.035)}
+.card h3{font-size:1rem}
+.item{grid-template-columns:66px minmax(0,1fr);gap:13px}
+.time{font-size:.92rem}
+.travel{border-left-width:2px;margin-left:79px;padding-left:16px}
+.acts button,.stbar button{border-radius:9px}
+.bottom-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:16px;align-items:start}
+.bottom-grid>.panel{min-width:0}
+textarea{border-radius:12px;min-height:200px;background:var(--bg)}
+#formPanel{border-top:3px solid var(--accent)}
+#summaryPanel{border-top:3px solid var(--line)}
+#saved{font-weight:600}
+#fmsg{font-size:.84rem}
+@media(max-width:900px){
+ .workspace{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .workspace-right{position:static}
+ .bottom-grid{grid-template-columns:1fr}
+ header{grid-template-columns:1fr 1fr}
+ header .hero-copy{grid-column:1/-1}
+}
+@media(max-width:680px){
+ .wrap{padding:14px 12px 40px}
+ header{grid-template-columns:1fr;padding:20px;border-radius:19px;gap:12px}
+ header .hero-copy{grid-column:auto}
+ header .row{grid-column:auto}
+ #dayInfo .grid{grid-template-columns:1fr}
+ #dayInfo .grid>div:last-child{align-self:stretch!important}
+ #dayInfo .grid>div:last-child button{flex:1}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{padding:12px}
+ .workspace{grid-template-columns:1fr;gap:0}
+ .workspace-left,.workspace-right{display:contents}
+ #chk{order:1}
+ #ordPanel{order:2}
+ #timelinePanel{order:3}
+ #mapPanel{order:4}
+ .panel{padding:15px;border-radius:15px}
+ .bottom-grid{display:flex;flex-direction:column}
+ .bottom-grid>.panel{width:100%}
+ .tabs{margin-bottom:10px}
+ .tab{min-width:100px;padding:9px 13px}
+ .item{grid-template-columns:54px minmax(0,1fr);gap:9px}
+ .travel{margin-left:63px}
+}
+@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-  <h1>วางแผนเที่ยว</h1>
+<header class="hero-header">
+  <div class="hero-copy"><div class="hero-eyebrow">YOUR JOURNEY, WELL PLANNED</div><h1>วางแผนเที่ยว</h1><p class="hero-subtitle">จัดการทุกจุดหมาย เวลาเดินทาง และเส้นทางของคุณได้ในที่เดียว</p></div>
   <div style="flex:2 1 220px"><label for="tname">ชื่อทริป</label><input type="text" id="tname"></div>
   <div style="flex:1 1 150px"><label for="tdate">วันเริ่มเดินทาง</label><input type="date" id="tdate"></div>
 <div class='row' style='flex:1 1 100%;margin:0;align-items:center'><button id='theme'>โหมดสี</button><button id='exp'>ส่งออก Excel</button><button id='imp'>นำเข้า Excel</button><input type='file' id='file' accept='.xlsx,.xls' hidden><span id='saved' style='color:var(--muted);font-size:.85rem'></span><span id='fmsg' style='color:var(--muted);font-size:.85rem'></span></div>
@@ -90,23 +198,44 @@ a{color:var(--accent)}
 <div class="panel" id="dayInfo">
   <div class="grid">
     <div><label for="dstart">เวลาออกเดินทางของวันนี้</label><input type="time" id="dstart"></div>
-    <div><label for='gmode'>วิธีเดินทาง (ใช้ประเมินเวลา)</label><select id='gmode'><option value='caree'>ขับรถ (พักสบาย)</option><option value='car'>ขับรถ (ทำเวลา)</option><option value='transit'>ขนส่งสาธารณะ</option><option value='walk'>เดินเท้า</option></select></div><div style="align-self:end;display:flex;gap:8px"><button id="addDay">+ เพิ่มวัน</button><button id="delDay" class="danger">ลบวันนี้</button></div>
+    <div><label for='gmode'>วิธีเดินทาง (ใช้ประเมินเวลา)</label><select id='gmode'><option value='caree'>ขับรถ (พักสบาย)</option><option value='car'>ขับรถ (ทำเวลา)</option><option value='transit'>ขนส่งสาธารณะ</option><option value='walk'>เดินเท้า</option></select></div><div style="align-self:end;display:flex;gap:8px"><button id="addDay">+ เพิ่มวัน</button><button id="copyDay">คัดลอกวันนี้</button><button id="delDay" class="danger">ลบวันนี้</button></div>
   </div>
 </div>
 
 <div class="stats" id="stats"></div>
 
-<div class="panel" id="chk"></div>
+<section class="panel" id="budgetPanel" aria-label="งบประมาณและค่าใช้จ่าย">
+  <h2>งบประมาณและค่าใช้จ่าย</h2>
+  <div class="grid" style="grid-template-columns:minmax(180px,280px) 1fr;align-items:end">
+    <div><label for="tripBudget">งบประมาณรวมทั้งทริป (บาท)</label><input type="number" id="tripBudget" min="0" step="1" placeholder="เช่น 15000"></div>
+    <div style="color:var(--muted);font-size:.88rem">บันทึกค่าใช้จ่ายแยกตามวันที่เลือก ระบบคำนวณยอดใช้จริงและงบคงเหลือให้อัตโนมัติ</div>
+  </div>
+  <div class="budget-top" id="budgetMetrics"></div>
+  <div class="budget-progress" aria-label="สัดส่วนการใช้งบ"><i id="budgetBar"></i></div>
+  <h3 style="font-size:.98rem;margin:12px 0 8px">เพิ่มค่าใช้จ่ายของวันที่เลือก</h3>
+  <div class="expense-form">
+    <div><label for="expenseName">รายการ</label><input type="text" id="expenseName" placeholder="เช่น ค่าอาหารกลางวัน"></div>
+    <div><label for="expenseCategory">หมวดหมู่</label><select id="expenseCategory"><option>อาหารและเครื่องดื่ม</option><option>เดินทาง</option><option>ที่พัก</option><option>ค่าเข้าชม / กิจกรรม</option><option>ช้อปปิ้ง</option><option>อื่น ๆ</option></select></div>
+    <div><label for="expenseAmount">จำนวนเงิน (บาท)</label><input type="number" id="expenseAmount" min="0.01" step="0.01" placeholder="0.00"></div>
+  </div>
+  <div class="row"><button class="primary" id="addExpense">+ บันทึกค่าใช้จ่าย</button><span id="expenseMsg" style="align-self:center;color:var(--muted);font-size:.85rem"></span></div>
+  <div id="expenseDayTotal" style="font-weight:700;margin-top:12px"></div>
+  <ul class="expense-list" id="expenseList"></ul>
+</section>
 
-<div class="panel" id="ordPanel" hidden></div>
+<section class="workspace" aria-label="ภาพรวมแผนการเดินทาง">
+  <div class="workspace-left">
+    <div class="panel" id="chk"></div>
+    <div class="panel" id="ordPanel" hidden></div>
+    <div class="panel" id="timelinePanel"><h2>Timeline ของวันนี้</h2><ol class="tl" id="tl"></ol></div>
+  </div>
+  <div class="workspace-right">
+    <div class="panel" id="mapPanel"><h2>แผนที่ของวันนี้</h2><div id="mapBody"></div></div>
+  </div>
+</section>
 
-<div class="panel">
-  <ol class="tl" id="tl"></ol>
-</div>
-
-<div class="panel" id="mapPanel"><h2>แผนที่ของวันนี้</h2><div id="mapBody"></div></div>
-
-<div class="panel">
+<section class="bottom-grid" aria-label="จัดการรายการและสรุปทริป">
+<div class="panel" id="formPanel">
   <h2 id="formTitle">เพิ่มรายการ</h2>
   <div class="grid">
     <div style="grid-column:1/-1"><label for="iname">ชื่อรายการ / สถานที่</label><input type="text" id="iname" placeholder="เช่น วัดพระแก้ว"></div>
@@ -118,11 +247,12 @@ a{color:var(--accent)}
   <div class="row"><button class="primary" id="save">เพิ่มรายการ</button><button id="cancel" hidden>ยกเลิกการแก้ไข</button></div>
 </div>
 
-<div class="panel">
+<div class="panel" id="summaryPanel">
   <h2>สรุปแผนเพื่อคัดลอก</h2>
   <textarea id="out" readonly aria-label="สรุปแผน"></textarea>
   <div class="row"><button id="copy">คัดลอก</button><span id="msg" style="align-self:center;color:var(--muted)"></span></div>
 </div>
+</section>
 </div>
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'></script>
@@ -132,6 +262,22 @@ var S={name:"ทริปของฉัน",date:"",cur:0,days:[{start:"08:00",
 var edit=-1;
 try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.days&&p.days.length)S=p;}}catch(e){}
 if(!S.date){S.date=new Date().toISOString().slice(0,10);}
+S.budget=Math.max(0,Number(S.budget)||0);
+S.days.forEach(function(d){if(!Array.isArray(d.expenses))d.expenses=[];});
+function money(n){return new Intl.NumberFormat('th-TH',{style:'currency',currency:'THB',maximumFractionDigits:2}).format(Number(n)||0);}
+function expenseTotal(day){return (day.expenses||[]).reduce(function(a,x){return a+(Number(x.amount)||0);},0);}
+function allExpenseTotal(){return S.days.reduce(function(a,d){return a+expenseTotal(d);},0);}
+function renderBudget(){
+  var day=S.days[S.cur],spent=allExpenseTotal(),daily=expenseTotal(day),budget=Number(S.budget)||0,remain=budget-spent,pct=budget>0?Math.min(100,spent/budget*100):0;
+  $('tripBudget').value=budget||'';
+  $('budgetMetrics').innerHTML='<div class="budget-metric"><small>งบประมาณรวม</small><b>'+money(budget)+'</b></div><div class="budget-metric"><small>ใช้จ่ายสะสม</small><b>'+money(spent)+'</b></div><div class="budget-metric"><small>'+(budget?'งบคงเหลือ':'ยังไม่กำหนดงบ')+'</small><b style="color:'+(budget&&remain<0?'var(--bad)':'var(--ink)')+'">'+(budget?money(remain):'—')+'</b></div>';
+  $('budgetBar').style.width=pct+'%';$('budgetBar').style.background=budget&&spent>budget?'var(--bad)':'#20a477';
+  $('expenseDayTotal').textContent='ยอดใช้จ่ายวันที่ '+(S.cur+1)+' ('+dayDate(S.cur)+'): '+money(daily);
+  var ul=$('expenseList');ul.innerHTML='';if(!day.expenses.length){ul.innerHTML='<li class="empty">ยังไม่มีค่าใช้จ่ายในวันนี้</li>';return;}
+  day.expenses.forEach(function(x,i){var li=document.createElement('li');li.innerHTML='<div class="expense-main"><b>'+esc(x.name)+'</b><small>'+esc(x.category||'อื่น ๆ')+(x.note?' · '+esc(x.note):'')+'</small></div><span class="expense-amount">'+money(x.amount)+'</span><button type="button" class="danger" aria-label="ลบ '+esc(x.name)+'">ลบ</button>';li.querySelector('button').onclick=function(){if(!confirm('ลบค่าใช้จ่ายรายการนี้หรือไม่?'))return;day.expenses.splice(i,1);save();renderBudget();renderStats();$('out').value=summary();};ul.appendChild(li);});
+}
+function renderStats(){var el=$('stats'),spent=allExpenseTotal(),budget=Number(S.budget)||0;var old=el.innerHTML;el.innerHTML=old+'<div class="stat"><b>'+money(spent)+'</b><span>ค่าใช้จ่ายสะสมทั้งทริป</span></div>'+(budget?'<div class="stat"><b>'+money(budget-spent)+'</b><span>งบคงเหลือ</span></div>':'');}
+
 function save(){var ok=true;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){ok=false;}var el=document.getElementById('saved');if(el){var n=new Date();el.textContent=ok?'บันทึกอัตโนมัติแล้ว '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'):'เบราว์เซอร์เก็บข้อมูลไม่ได้ ใช้ส่งออก Excel เพื่อเก็บไว้';}}
 function $(id){return document.getElementById(id);}
 function toMin(t){if(!t)return null;var a=t.split(":");return +a[0]*60+ +a[1];}
@@ -185,7 +331,7 @@ function render(){
     tl.appendChild(li);
   });
   $("delDay").disabled=S.days.length<2;renderChk(day,c);renderOrd(day,c);renderMap(day);
-  $("out").value=summary();
+  $("out").value=summary();renderBudget();renderStats();
 }
 function mv(i,d){var a=S.days[S.cur].items,j=i+d;if(j<0||j>=a.length)return;var t=a[i];a[i]=a[j];a[j]=t;cancelEdit();save();render();}
 function val(id){return Math.max(0,parseInt($(id).value,10)||0);}
@@ -211,6 +357,11 @@ function summary(){
     });
     if(d.items.length)out+="จบวัน "+fmt(c.end).t+" · รวม "+dur(c.end-c.start)+"\n";
   });
+  out+="\nสรุปค่าใช้จ่าย\n";
+  S.days.forEach(function(d,i){out+="วันที่ "+(i+1)+" ("+dayDate(i)+"): "+money(expenseTotal(d))+"\n";});
+  var total=allExpenseTotal(),budget=Number(S.budget)||0;out+="รวมทั้งทริป: "+money(total)+"\n";
+  out+="งบประมาณ: "+(budget?money(budget):"ยังไม่กำหนด")+"\n";
+  if(budget)out+="งบคงเหลือ: "+money(budget-total)+"\n";
   return out;
 }
 $("save").onclick=function(){
@@ -225,8 +376,18 @@ $("cancel").onclick=cancelEdit;
 $("tname").oninput=function(){S.name=this.value;save();$("out").value=summary();};
 $("tdate").onchange=function(){if(this.value){S.date=this.value;save();render();}};
 $("dstart").onchange=function(){S.days[S.cur].start=this.value||"08:00";save();render();};
-$("addDay").onclick=function(){S.days.push({start:S.days[S.cur].start,items:[]});S.cur=S.days.length-1;cancelEdit();save();render();};
+$("addDay").onclick=function(){S.days.push({start:S.days[S.cur].start,items:[],expenses:[]});S.cur=S.days.length-1;cancelEdit();save();render();};
+$("copyDay").onclick=function(){
+  var source=S.days[S.cur];
+  var copied={start:source.start,expenses:[],items:source.items.map(function(it){
+    var x=JSON.parse(JSON.stringify(it));x.st='';return x;
+  })};
+  S.days.splice(S.cur+1,0,copied);S.cur=S.cur+1;cancelEdit();save();render();
+  note('คัดลอกแผนวันนี้แล้ว สามารถปรับรายการและเวลาได้ตามต้องการ');
+};
 $("delDay").onclick=function(){if(S.days.length<2)return;var b=$('delDay');if(!b.dataset.arm){b.dataset.arm='1';b.textContent='กดอีกครั้งเพื่อลบ';setTimeout(function(){delete b.dataset.arm;b.textContent='ลบวันนี้';},3000);return;}delete b.dataset.arm;b.textContent='ลบวันนี้';S.days.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);cancelEdit();save();render();};
+$('tripBudget').onchange=function(){S.budget=Math.max(0,Number(this.value)||0);save();renderBudget();renderStats();$('out').value=summary();};
+$('addExpense').onclick=function(){var name=$('expenseName').value.trim(),amount=Number($('expenseAmount').value);if(!name){$('expenseMsg').textContent='กรอกชื่อรายการก่อน';$('expenseName').focus();return;}if(!Number.isFinite(amount)||amount<=0){$('expenseMsg').textContent='กรอกจำนวนเงินมากกว่า 0';$('expenseAmount').focus();return;}var d=S.days[S.cur];if(!Array.isArray(d.expenses))d.expenses=[];d.expenses.push({name:name,category:$('expenseCategory').value,amount:Math.round(amount*100)/100});$('expenseName').value='';$('expenseAmount').value='';$('expenseMsg').textContent='บันทึกแล้ว';save();renderBudget();renderStats();$('out').value=summary();};
 $("copy").onclick=function(){
   var t=$("out");t.select();var ok=false;
   try{ok=document.execCommand("copy");}catch(e){}
@@ -237,9 +398,9 @@ function applyTheme(){var r=document.documentElement;if(mode==='auto')r.removeAt
 $('theme').onclick=function(){mode=mode==='auto'?'light':mode==='light'?'dark':'auto';try{localStorage.setItem(TK,mode);}catch(e){}applyTheme();};
 function note(t){$('fmsg').textContent=t;}
 function normTime(v){if(typeof v==='number'&&v>=0&&v<1){return fmt(Math.round(v*1440)).t;}var s=String(v==null?'':v).trim(),p=s.split(':');if(p.length<2)return '';var h=parseInt(p[0],10),mi=parseInt(p[1],10);if(isNaN(h)||isNaN(mi)||h>23||mi>59)return '';return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0');}
-async function exportXlsx(){if(typeof XLSX==='undefined'){note('โหลดตัวสร้างไฟล์ Excel ไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่');return;}var dl=null;try{dl=window.claude?await window.claude.use('downloads'):null;}catch(e){}if(false){note('ส่งออกไฟล์ไม่ได้ในมุมมองนี้ ลองเปิดหน้านี้ใน claude.ai');return;}var rows=[['วัน','เวลาออกเดินทาง','ลำดับ','ชื่อรายการ','โน้ต','เดินทาง (นาที)','ใช้เวลา (นาที)','เวลาถึงที่กำหนด','เวลาถึง','เวลาออก']];rows[0].push('lat','long','สถานะ');S.days.forEach(function(d,i){var c=calc(d);if(!d.items.length)rows.push([i+1,d.start,'','','','','','','','']);d.items.forEach(function(it,k){var r=c.rows[k];rows.push([i+1,d.start,k+1,it.name,it.note||'',it.travel,it.stay,it.fix||'',fmt(r.arrive).t,fmt(r.end).t,it.lat==null?'':it.lat,it.lng==null?'':it.lng,STL[it.st||'']]);});});var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:6},{wch:14},{wch:8},{wch:28},{wch:28},{wch:14},{wch:14},{wch:16},{wch:10},{wch:10}];XLSX.utils.book_append_sheet(wb,ws,'แผน');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ชื่อทริป','วันเริ่มเดินทาง'],[S.name,S.date]]),'ทริป');var buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});if(!dl){if(window.top!==window.self){note('ส่งออกไม่ได้ในกรอบนี้ ให้เปิดหน้านี้แบบเต็มหน้า หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์');return;}try{var fn=((S.name||'trip').replace(/[^a-zA-Z0-9ก-๙ _-]/g,'')||'trip')+'.xlsx';var bl=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});var u=URL.createObjectURL(bl);var a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},4000);note('ส่งออกแล้ว');}catch(e){note('บันทึกไฟล์ไม่สำเร็จ');}return;}
+async function exportXlsx(){if(typeof XLSX==='undefined'){note('โหลดตัวสร้างไฟล์ Excel ไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่');return;}var dl=null;try{dl=window.claude?await window.claude.use('downloads'):null;}catch(e){}if(false){note('ส่งออกไฟล์ไม่ได้ในมุมมองนี้ ลองเปิดหน้านี้ใน claude.ai');return;}var rows=[['วัน','เวลาออกเดินทาง','ลำดับ','ชื่อรายการ','โน้ต','เดินทาง (นาที)','ใช้เวลา (นาที)','เวลาถึงที่กำหนด','เวลาถึง','เวลาออก']];rows[0].push('lat','long','สถานะ');S.days.forEach(function(d,i){var c=calc(d);if(!d.items.length)rows.push([i+1,d.start,'','','','','','','','']);d.items.forEach(function(it,k){var r=c.rows[k];rows.push([i+1,d.start,k+1,it.name,it.note||'',it.travel,it.stay,it.fix||'',fmt(r.arrive).t,fmt(r.end).t,it.lat==null?'':it.lat,it.lng==null?'':it.lng,STL[it.st||'']]);});});var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:6},{wch:14},{wch:8},{wch:28},{wch:28},{wch:14},{wch:14},{wch:16},{wch:10},{wch:10}];XLSX.utils.book_append_sheet(wb,ws,'แผน');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ชื่อทริป','วันเริ่มเดินทาง','งบประมาณรวม'],[S.name,S.date,S.budget||0]]),'ทริป');var erows=[['วัน','วันที่','รายการ','หมวดหมู่','จำนวนเงิน (บาท)']];S.days.forEach(function(d,i){(d.expenses||[]).forEach(function(x){erows.push([i+1,dayDate(i),x.name,x.category||'อื่น ๆ',Number(x.amount)||0]);});});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(erows),'ค่าใช้จ่าย');var buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});if(!dl){if(window.top!==window.self){note('ส่งออกไม่ได้ในกรอบนี้ ให้เปิดหน้านี้แบบเต็มหน้า หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์');return;}try{var fn=((S.name||'trip').replace(/[^a-zA-Z0-9ก-๙ _-]/g,'')||'trip')+'.xlsx';var bl=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});var u=URL.createObjectURL(bl);var a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},4000);note('ส่งออกแล้ว');}catch(e){note('บันทึกไฟล์ไม่สำเร็จ');}return;}
 try{await dl.save({filename:((S.name||'trip').replace(/[^a-zA-Z0-9ก-๙ _-]/g,'')||'trip')+'.xlsx',data:buf});note('ส่งออกแล้ว');}catch(e){note(e&&e.code==='declined'?'ยกเลิกการบันทึกไฟล์':'บันทึกไฟล์ไม่สำเร็จ');}}
-function importXlsx(file){if(typeof XLSX==='undefined'){note('โหลดตัวอ่านไฟล์ Excel ไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่');return;}var fr=new FileReader();fr.onload=function(){try{var wb=XLSX.read(fr.result,{type:'array'});var ws=wb.Sheets['แผน']||wb.Sheets[wb.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});var map={},order=[];for(var i=1;i<rows.length;i++){var r=rows[i],dn=parseInt(r[0],10);if(!dn||dn<1)continue;if(!map[dn]){map[dn]={start:normTime(r[1])||'08:00',items:[]};order.push(dn);}var nm=String(r[3]||'').trim();if(nm)map[dn].items.push({name:nm,note:String(r[4]||'').trim(),travel:Math.max(0,parseInt(r[5],10)||0),stay:Math.max(0,parseInt(r[6],10)||0),fix:normTime(r[7]),lat:pcoord(r[10],90),lng:pcoord(r[11],180),st:STR[String(r[12]||'').trim()]||''});}if(!order.length){note('ไม่พบข้อมูลวันในไฟล์ ใช้ไฟล์ที่ส่งออกจากหน้านี้');return;}order.sort(function(a,b){return a-b;});var days=order.map(function(k){return map[k];});var nameV=S.name,dateV=S.date,info=wb.Sheets['ทริป'];if(info){var ir=XLSX.utils.sheet_to_json(info,{header:1,defval:''});if(ir[1]){if(ir[1][0])nameV=String(ir[1][0]);var d=ir[1][1];if(typeof d==='number')d=new Date(Math.round((d-25569)*864e5)).toISOString().slice(0,10);d=String(d).slice(0,10);if(d.length===10&&!isNaN(new Date(d)))dateV=d;}}S={name:nameV,date:dateV,cur:0,mode:S.mode,days:days};cancelEdit();save();render();note('นำเข้าแล้ว '+days.length+' วัน (แทนที่ข้อมูลเดิม)');}catch(e){note('อ่านไฟล์ไม่สำเร็จ ตรวจว่าเป็นไฟล์ .xlsx');}};fr.readAsArrayBuffer(file);}
+function importXlsx(file){if(typeof XLSX==='undefined'){note('โหลดตัวอ่านไฟล์ Excel ไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่');return;}var fr=new FileReader();fr.onload=function(){try{var wb=XLSX.read(fr.result,{type:'array'});var ws=wb.Sheets['แผน']||wb.Sheets[wb.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});var map={},order=[];for(var i=1;i<rows.length;i++){var r=rows[i],dn=parseInt(r[0],10);if(!dn||dn<1)continue;if(!map[dn]){map[dn]={start:normTime(r[1])||'08:00',items:[]};order.push(dn);}var nm=String(r[3]||'').trim();if(nm)map[dn].items.push({name:nm,note:String(r[4]||'').trim(),travel:Math.max(0,parseInt(r[5],10)||0),stay:Math.max(0,parseInt(r[6],10)||0),fix:normTime(r[7]),lat:pcoord(r[10],90),lng:pcoord(r[11],180),st:STR[String(r[12]||'').trim()]||''});}if(!order.length){note('ไม่พบข้อมูลวันในไฟล์ ใช้ไฟล์ที่ส่งออกจากหน้านี้');return;}order.sort(function(a,b){return a-b;});var days=order.map(function(k){return map[k];});days.forEach(function(d){d.expenses=[];});var nameV=S.name,dateV=S.date,budgetV=Number(S.budget)||0,info=wb.Sheets['ทริป'];if(info){var ir=XLSX.utils.sheet_to_json(info,{header:1,defval:''});if(ir[1]){if(ir[1][0])nameV=String(ir[1][0]);budgetV=Math.max(0,Number(ir[1][2])||0);var d=ir[1][1];if(typeof d==='number')d=new Date(Math.round((d-25569)*864e5)).toISOString().slice(0,10);d=String(d).slice(0,10);if(d.length===10&&!isNaN(new Date(d)))dateV=d;}}var ex=wb.Sheets['ค่าใช้จ่าย'];if(ex){var er=XLSX.utils.sheet_to_json(ex,{header:1,defval:''});for(var ei=1;ei<er.length;ei++){var ed=parseInt(er[ei][0],10),en=String(er[ei][2]||'').trim(),ea=Number(er[ei][4]);if(ed>0&&ed<=days.length&&en&&Number.isFinite(ea)&&ea>0)days[ed-1].expenses.push({name:en,category:String(er[ei][3]||'อื่น ๆ'),amount:ea});}}S={name:nameV,date:dateV,budget:budgetV,cur:0,mode:S.mode,days:days};cancelEdit();save();render();note('นำเข้าแล้ว '+days.length+' วัน (แทนที่ข้อมูลเดิม)');}catch(e){note('อ่านไฟล์ไม่สำเร็จ ตรวจว่าเป็นไฟล์ .xlsx');}};fr.readAsArrayBuffer(file);}
 $('exp').onclick=exportXlsx;$('imp').onclick=function(){$('file').click();};$('file').onchange=function(){if(this.files[0])importXlsx(this.files[0]);this.value='';};
 $('saved').textContent='ข้อมูลบันทึกอัตโนมัติในเบราว์เซอร์นี้';
 ['th','tm','sh','sm'].forEach(function(id){var el=$(id);el.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);});el.addEventListener('blur',function(){var n=parseInt(this.value,10)||0;if(id==='tm'||id==='sm')n=Math.min(n,59);this.value=String(n).padStart(2,'0');});el.addEventListener('focus',function(){this.select();});});
