@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>วางแผนเที่ยว</title>
+<title>Trip</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;700&family=Sarabun:wght@400;600&display=swap">
 <style>
 :root{--bg:#eef3f4;--surface:#fff;--ink:#14272e;--muted:#5d727a;--line:#cddadd;--accent:#0e7c86;--accent-ink:#fff;--travel:#e8a33d;--bad:#b3261e;--tint:#e1eef0;
@@ -14,7 +14,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Sarabun,"Noto Sans Thai",system-ui,sans-serif}
 h1,h2,.num{font-family:Prompt,Sarabun,sans-serif}
-.wrap{display:block;max-width:880px;margin:0 auto;padding:20px 16px 60px}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 60px}
 header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;margin-bottom:18px}
 h1{font-size:1.7rem;margin:0;flex:1 1 100%;font-weight:700}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:2px}
@@ -74,41 +74,9 @@ a{color:var(--accent)}
 .ord .on{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ord .on small{color:var(--muted)}
 .ord button{min-height:40px;min-width:44px;padding:0}.grip{cursor:grab;color:var(--muted);font-size:1.1rem}
 @media (max-width:520px){.item{grid-template-columns:54px 1fr}.travel{margin-left:66px}}
-.admin-btn{position:fixed;top:14px;right:14px;z-index:1500;border:1px solid var(--line);background:rgba(255,255,255,.78);backdrop-filter:blur(8px);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:.8rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.admin-btn[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:2000;padding:20px}
-.admin-modal[hidden]{display:none}
-.admin-modal-box{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.2)}
-.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.admin-header h3{margin:0;font-size:1.1rem}
-.admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.admin-modal input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:42px;margin-top:4px}
-.admin-modal label{display:block;font-size:.85rem;color:var(--muted);margin-top:10px}
-#adminMsg{margin-top:10px;font-size:.85rem}
 </style>
 </head>
 <body>
-
-<button id="adminBtn" type="button" class="admin-btn" aria-label="Admin login">Admin</button>
-
-<div id="adminModal" class="admin-modal" hidden>
-  <div class="admin-modal-box">
-    <div class="admin-header">
-      <h3>Admin Login</h3>
-      <button id="adminClose" type="button">×</button>
-    </div>
-    <label for="adminEmail">อีเมล</label>
-    <input id="adminEmail" type="email" placeholder="admin@example.com">
-    <label for="adminPassword" style="margin-top:8px">รหัสผ่าน</label>
-    <input id="adminPassword" type="password" placeholder="กรอกรหัสผ่าน">
-    <div class="admin-actions">
-      <button id="adminLogin" type="button" class="primary">เข้าสู่ระบบ admin</button>
-      <button id="adminCancel" type="button">ยกเลิก</button>
-    </div>
-    <p id="adminMsg" class="muted" aria-live="polite"></p>
-  </div>
-</div>
-
 <div class="wrap">
 <header>
   <h1>วางแผนเที่ยว</h1>
@@ -159,10 +127,12 @@ a{color:var(--accent)}
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'></script>
 <script>
+var KEY="trip-planner-v1";
 var S={name:"ทริปของฉัน",date:"",cur:0,days:[{start:"08:00",items:[]}]};
 var edit=-1;
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.days&&p.days.length)S=p;}}catch(e){}
 if(!S.date){S.date=new Date().toISOString().slice(0,10);}
-function save(){var el=document.getElementById('saved');if(el)el.textContent='รอซิงก์กับบัญชีของคุณ';}
+function save(){var ok=true;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){ok=false;}var el=document.getElementById('saved');if(el){var n=new Date();el.textContent=ok?'บันทึกอัตโนมัติแล้ว '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'):'เบราว์เซอร์เก็บข้อมูลไม่ได้ ใช้ส่งออก Excel เพื่อเก็บไว้';}}
 function $(id){return document.getElementById(id);}
 function toMin(t){if(!t)return null;var a=t.split(":");return +a[0]*60+ +a[1];}
 function fmt(m){m=Math.round(m);var d=Math.floor(m/1440);m=((m%1440)+1440)%1440;var s=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");return {t:s,next:d};}
@@ -182,7 +152,7 @@ function calc(day){
   });
   return {rows:res,end:cur,tTravel:tTravel,tStay:tStay,tWait:tWait,start:toMin(day.start)||0};
 }
-function esc(s){return String(s).replace(/[&<>\"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function render(){
   $("tname").value=S.name;$("tdate").value=S.date;
   var tabs=$("tabs");tabs.innerHTML="";
@@ -210,7 +180,7 @@ function render(){
       '<p>อยู่ '+dur(it.stay)+' · ออก '+en.t+(en.next?" (+"+en.next+")":"")+'</p>'+(it.note?'<p>'+esc(it.note)+'</p>':"")+
       (r.warn?'<div class="warn">'+r.warn+'</div>':"")+'<div class="acts"></div></div>';
     var acts=li.querySelector(".acts");var cd=li.querySelector('.card');var h3=cd.querySelector('h3'),cc=colorOf(i),chp=document.createElement('span');chp.className='chip';chp.style.background=cc[0];chp.style.color=cc[1];chp.textContent=i+1;h3.insertBefore(chp,h3.firstChild);if(it.st)cd.className+=' st-'+it.st;var sb=document.createElement('div');sb.className='stbar';[['go','กำลังเดินทาง'],['done','เสร็จสิ้น'],['skip','ข้าม']].forEach(function(x){var b=document.createElement('button');b.className='b-'+x[0];b.textContent=x[1];b.setAttribute('aria-pressed',it.st===x[0]);b.onclick=function(){it.st=it.st===x[0]?'':x[0];save();render();};sb.appendChild(b);});acts.parentNode.insertBefore(sb,acts);if(okc(it)){var mp=document.createElement('p');var ma=document.createElement('a');ma.href='https://www.google.com/maps/search/?api=1&query='+it.lat+','+it.lng;ma.target='_blank';ma.rel='noopener';ma.textContent='เปิดใน Google Maps';mp.appendChild(document.createTextNode('พิกัด '+it.lat+', '+it.lng+' · '));mp.appendChild(ma);acts.parentNode.insertBefore(mp,sb);}
-    [["↑",function(){mv(i,-1);}], ["↓",function(){mv(i,1);}], ["แก้ไข",function(){startEdit(i);}], ["ลบ",function(){day.items.splice(i,1);cancelEdit();save();render();},"danger"]].forEach(function(x){
+    [["↑",function(){mv(i,-1);}],["↓",function(){mv(i,1);}],["แก้ไข",function(){startEdit(i);}],["ลบ",function(){day.items.splice(i,1);cancelEdit();save();render();},"danger"]].forEach(function(x){
       var b=document.createElement("button");b.textContent=x[0];if(x[2])b.className=x[2];b.onclick=x[1];if(x[0]==="↑")b.setAttribute("aria-label","เลื่อนขึ้น");if(x[0]==="↓")b.setAttribute("aria-label","เลื่อนลง");acts.appendChild(b);});
     tl.appendChild(li);
   });
@@ -247,7 +217,7 @@ $("save").onclick=function(){
   var name=$("iname").value.trim();
   if(!name){$("iname").focus();$("iname").setCustomValidity&&0;$("msg").textContent="กรอกชื่อรายการก่อนบันทึก";return;}
   $("msg").textContent="";if(($('ilat').value.trim()&&pcoord($('ilat').value,90)===null)||($('ilng').value.trim()&&pcoord($('ilng').value,180)===null)){$("msg").textContent='พิกัดไม่ถูกต้อง (lat -90 ถึง 90, long -180 ถึง 180)';return;}if(!!$('ilat').value.trim()!==!!$('ilng').value.trim()){$("msg").textContent='กรอกพิกัดให้ครบทั้ง lat และ long';return;}
-  var it={name:name,note:$("inote").value.trim(),travel:val("th")*60+val("tm"),stay:val("sh")*60+val("sm"),fix:$("ifix").value,lat:pcoord($('ilat').value,90),lng:pcoord($('ilng').value,180),st:(edit>=0?(S.days[S.cur].items[edit].st||''):"")};
+  var it={name:name,note:$("inote").value.trim(),travel:val("th")*60+val("tm"),stay:val("sh")*60+val("sm"),fix:$("ifix").value,lat:pcoord($('ilat').value,90),lng:pcoord($('ilng').value,180),st:(edit>=0?(S.days[S.cur].items[edit].st||''):'')};
   var a=S.days[S.cur].items;if(edit>=0)a[edit]=it;else a.push(it);
   cancelEdit();save();render();
 };
@@ -316,74 +286,11 @@ var dir='https://www.google.com/maps/dir/'+pts.map(function(p){return p.it.lat+'
 var lg=pts.map(function(p){return `<span class='lg'>${chipH(p.i)}${esc(p.it.name)}${p.it.st?' '+SI[p.it.st]:''}</span>`;}).join('');
 box.innerHTML=`<div class='row' style='margin:0 0 8px;align-items:center'><button id='mzin'>＋ ซูมเข้า</button><button id='mzout'>− ซูมออก</button><button id='mzfit'>พอดีทุกจุด</button><select id='tsrc' style='width:auto' aria-label='แหล่งแผนที่พื้นหลัง'><option value='carto'>CARTO</option><option value='osm'>OpenStreetMap</option><option value='esri'>Esri</option></select></div><div id='tilemsg' class='warn'></div>`+s+`<div class='legend'>${lg}</div>`+(pts.length>1?`<p style='margin:10px 0 0'>รวมระยะประมาณ <b>${tk.toFixed(1)} กม.</b> · เวลาเดินทางที่แนะนำรวม <b>${dur(tmn)}</b> (${MODES[S.mode||'car'].n})</p><ul class='legs'>${ls}</ul>`:'')+`<div class='row'><a href='${dir}' target='_blank' rel='noopener'>เปิดเส้นทางใน Google Maps</a>`+(pts.length>1?`<button id='applyAll'>ใช้เวลาแนะนำกับทุกช่วง</button>`:'')+`</div><p style='color:var(--muted);font-size:.85rem'>หมุดเลขที่ซ้อนกันถูกแยกออกและใช้เส้นโยงไปที่จุดจริง แต่ละรายการมีสีของตัวเอง วงกลมเล็กแสดงสถานะ (✓ เสร็จ → กำลังเดินทาง ✕ ข้าม) · ระยะและเวลาประเมินจากเส้นตรง × ตัวคูณถนน ไม่รวมจราจร`+(miss?` · มี ${miss} รายการที่ยังไม่มีพิกัด`:'')+`</p>`;
 $('tsrc').value=S.tiles||'carto';$('tsrc').onchange=function(){S.tiles=this.value;save();renderMap(S.days[S.cur]);};$('mzin').onclick=function(){MZ=Math.min(MZ+1,6);renderMap(S.days[S.cur]);};$('mzout').onclick=function(){MZ=Math.max(MZ-1,-6);renderMap(S.days[S.cur]);};$('mzfit').onclick=function(){MZ=0;renderMap(S.days[S.cur]);};
-box.querySelectorAll('image.tile').forEach(function(im){im.addEventListener('error',function(){var m=$('tilemsg');if(m)m.textContent='โหลดภาพแผนที่พื้นหลังไม่ได้ (ถูกบล็อกในมุมนี้ หรือไม่มีอินเทอร์เน็ต) ลองเปลี่ยนแหล่งแผนที่ หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์';});});
+box.querySelectorAll('image.tile').forEach(function(im){im.addEventListener('error',function(){var m=$('tilemsg');if(m)m.textContent='โหลดภาพแผนที่พื้นหลังไม่ได้ (ถูกบล็อกในมุมมองนี้ หรือไม่มีอินเทอร์เน็ต) ลองเปลี่ยนแหล่งแผนที่ หรือเปิดไฟล์ HTML โดยตรงในเบราว์เซอร์';});});
 var ap=$('applyAll');if(ap)ap.onclick=function(){var t=this;if(!t.dataset.arm){t.dataset.arm='1';t.textContent='กดอีกครั้งเพื่อยืนยัน (แทนที่เวลาเดินทางเดิม)';setTimeout(function(){delete t.dataset.arm;t.textContent='ใช้เวลาแนะนำกับทุกช่วง';},3500);return;}var n=0;for(var k=1;k<day.items.length;k++){var a=day.items[k-1],b=day.items[k];if(okc(a)&&okc(b)){b.travel=leg(a,b).min;n++;}}save();render();note(n?'ปรับเวลาเดินทาง '+n+' ช่วงแล้ว':'ไม่มีช่วงที่มีพิกัดครบทั้งสองจุดติดกัน');};}
 if(!S.mode)S.mode='caree';
 applyTheme();
 render();
-
-(function(){
-  const adminBtn = document.getElementById('adminBtn');
-  const adminModal = document.getElementById('adminModal');
-  const adminClose = document.getElementById('adminClose');
-  const adminCancel = document.getElementById('adminCancel');
-  const adminLogin = document.getElementById('adminLogin');
-  const adminEmail = document.getElementById('adminEmail');
-  const adminPassword = document.getElementById('adminPassword');
-  const adminMsg = document.getElementById('adminMsg');
-
-  if (!adminBtn || !adminModal) return;
-
-  adminBtn.addEventListener('click', function () {
-    adminModal.hidden = false;
-    adminMsg && (adminMsg.textContent = '');
-    setTimeout(function () {
-      if (adminEmail) adminEmail.focus();
-    }, 50);
-  });
-
-  if (adminClose) {
-    adminClose.addEventListener('click', function () {
-      adminModal.hidden = true;
-      if (adminMsg) adminMsg.textContent = '';
-    });
-  }
-
-  if (adminCancel) {
-    adminCancel.addEventListener('click', function () {
-      adminModal.hidden = true;
-      if (adminMsg) adminMsg.textContent = '';
-    });
-  }
-
-  adminModal.addEventListener('click', function (e) {
-    if (e.target === adminModal) {
-      adminModal.hidden = true;
-      if (adminMsg) adminMsg.textContent = '';
-    }
-  });
-
-  if (adminLogin) {
-    adminLogin.addEventListener('click', function () {
-      if (adminMsg) {
-        adminMsg.textContent = 'Admin login ยังไม่ได้เชื่อม Supabase ในหน้าเวอร์ชันนี้ กรุณาเชื่อมต่อ Supabase ก่อนใช้งาน';
-        adminMsg.className = 'warn';
-      }
-    });
-  }
-
-  if (adminEmail) {
-    adminEmail.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && adminLogin) adminLogin.click();
-    });
-  }
-
-  if (adminPassword) {
-    adminPassword.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && adminLogin) adminLogin.click();
-    });
-  }
-})();
 </script>
 </body>
 </html>
